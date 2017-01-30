@@ -3,7 +3,7 @@
 BIN		:=ftp2s3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
-SOURCES	:=$(wildcard **/*.go)
+SOURCES	:=$(wildcard *.go **/*.go)
 GO_PATH	:=$(shell pwd)/.go
 
 $(BIN): $(SOURCES)

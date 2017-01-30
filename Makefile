@@ -6,6 +6,8 @@ GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
 SOURCES	:=$(wildcard *.go **/*.go)
 GO_PATH	:=$(shell pwd)/.go
 
+all: $(BIN)
+
 $(BIN): $(SOURCES)
 	GOPATH=$(GO_PATH) go build $(GO_FLAGS) $@.go
 

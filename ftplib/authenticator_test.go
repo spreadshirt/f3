@@ -50,7 +50,7 @@ func TestAuthenticatorFromString(t *testing.T) {
 		for user, pass := range testData.parsed {
 			valid, _ := auth.CheckPasswd(user, pass)
 			if !valid {
-				t.Errorf("Test %s: credentials %s:%s could not be valid", testData.id, user, pass)
+				t.Errorf("Test %s: credentials %s:%s could not be validated", testData.id, user, pass)
 			}
 		}
 	}

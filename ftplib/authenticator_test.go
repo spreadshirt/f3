@@ -43,7 +43,7 @@ func TestAuthenticatorFromString(t *testing.T) {
 	}
 	for _, testData := range testDataSet {
 		auth, err := AuthenticatorFromString(testData.raw)
-		if err != nil && !testData.shouldFail {
+		if err == nil && testData.shouldFail {
 			t.Errorf("Test %s: should fail but succeeded", testData.id)
 			continue
 		}

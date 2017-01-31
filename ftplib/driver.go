@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ftp "github.com/goftp/server"
-	"strconv"
 )
 
 // DriverFactory builds FTP drivers.
@@ -70,7 +69,6 @@ func parseFeatureSet(featureSet string) (int, error) {
 			return 0, fmt.Errorf("Unknown feature flag: %q", feature)
 		}
 	}
-	fmt.Println(strconv.FormatInt(int64(featureFlags), 2))
 	return featureFlags, nil
 }
 

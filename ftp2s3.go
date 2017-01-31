@@ -36,6 +36,10 @@ func main() {
 			Value: "ls",
 			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
 		},
+		cli.BoolFlag{
+			Name: "ftp-no-overwrite",
+			Usage: "Prevent files from being overwritten",
+		},
 	}
 	app.Action = run
 	app.Run(os.Args)
@@ -78,7 +82,7 @@ func run(context *cli.Context) error {
 		}
 	}
 
-	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"))
+	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"), context.Bool("ftp-no-overwrite"))
 	if err != nil {
 		return err
 	}

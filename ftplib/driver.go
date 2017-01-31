@@ -17,15 +17,16 @@ import (
 type DriverFactory struct {
 	rootPath     string
 	featureFlags int
+	noOverwrite  bool
 }
 
 // NewDriverFactory returns a DriverFactory.
-func NewDriverFactory(rootPath string, featureSet string) (DriverFactory, error) {
+func NewDriverFactory(rootPath string, featureSet string, noOverwrite bool) (DriverFactory, error) {
 	featureFlags, err := parseFeatureSet(featureSet)
 	if err != nil {
 		return DriverFactory{}, err
 	}
-	return DriverFactory{rootPath, featureFlags}, nil
+	return DriverFactory{rootPath, featureFlags, noOverwrite}, nil
 }
 
 const (
@@ -72,7 +73,7 @@ func parseFeatureSet(featureSet string) (int, error) {
 }
 
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
-	return FsDriver{d.rootPath, d.featureFlags}, nil
+	return FsDriver{d.rootPath, d.featureFlags, d.noOverwrite}, nil
 }
 
 // FsDriver is a filesystem FTP driver.
@@ -80,6 +81,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 type FsDriver struct {
 	rootPath     string
 	featureFlags int
+	noOverwrite  bool
 }
 
 func (FsDriver) Init(conn *ftp.Conn) {
@@ -201,8 +203,13 @@ func (d FsDriver) PutFile(pathname string, data io.Reader, appendMode bool) (int
 	}
 	pathname = d.buildPath(pathname)
 	info, err := os.Stat(pathname)
-	if os.IsExist(err) && info.IsDir() {
-		return -1, fmt.Errorf("%q is already a directory!", pathname)
+	if os.IsExist(err) {
+		if info.IsDir() {
+			return -1, fmt.Errorf("%q is already a directory", pathname)
+		}
+		if d.noOverwrite {
+			return -1, fmt.Errorf("Overwrite is forbidden")
+		}
 	}
 
 	mode := os.O_WRONLY | os.O_CREATE

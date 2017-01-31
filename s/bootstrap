@@ -1,0 +1,23 @@
+#!/bin/bash
+
+namespace='git.spreadomat.net/sprd'
+project_root="$(cd $(dirname $0)/.. && pwd)"
+project_name="$(basename $project_root)"
+full_path="$project_root/.go/src/$namespace/$project_name"
+
+link_into_gopath() {
+    echo "linking \"$project_root\" into local GOPATH: $full_path" &&\
+    ln -s $project_root $full_path
+}
+
+mkdir -p $project_root/.go/src/$namespace
+[[ ! -e "$full_path" ]] &&\
+    link_into_gopath && exit
+
+[[ -e "$full_path" ]] && [[ ! -L "$full_path" ]] &&\
+    echo "\"$full_path\" already exists and is _not_ a symbolic link!" &&\
+    exit 1
+
+rm $full_path && link_into_gopath
+
+# vim: set syntax=sh

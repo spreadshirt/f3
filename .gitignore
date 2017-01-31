@@ -1,3 +1,4 @@
 *.swp
 /.idea/
 /.go/
+ftp2s3

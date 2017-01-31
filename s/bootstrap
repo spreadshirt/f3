@@ -11,13 +11,14 @@ link_into_gopath() {
 }
 
 mkdir -p $project_root/.go/src/$namespace
-[[ ! -e "$full_path" ]] &&\
-    link_into_gopath && exit
-
 [[ -e "$full_path" ]] && [[ ! -L "$full_path" ]] &&\
     echo "\"$full_path\" already exists and is _not_ a symbolic link!" &&\
     exit 1
 
-rm $full_path && link_into_gopath
+rm -f $full_path && link_into_gopath
+
+pushd $project_root &>/dev/null
+GOPATH=$project_root/.go go get -d -v ./...
+popd &>/dev/null
 
 # vim: set syntax=sh

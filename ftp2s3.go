@@ -78,7 +78,7 @@ func run(context *cli.Context) error {
 		}
 	}
 
-	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"), context.Bool("ftp-modify"))
+	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"))
 	if err != nil {
 		return err
 	}

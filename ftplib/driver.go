@@ -17,16 +17,15 @@ import (
 type DriverFactory struct {
 	rootPath     string
 	featureFlags int
-	modify       bool
 }
 
 // NewDriverFactory returns a DriverFactory.
-func NewDriverFactory(rootPath string, featureSet string, modify bool) (DriverFactory, error) {
+func NewDriverFactory(rootPath string, featureSet string) (DriverFactory, error) {
 	featureFlags, err := parseFeatureSet(featureSet)
 	if err != nil {
 		return DriverFactory{}, err
 	}
-	return DriverFactory{rootPath, featureFlags, modify}, nil
+	return DriverFactory{rootPath, featureFlags}, nil
 }
 
 const (
@@ -73,7 +72,7 @@ func parseFeatureSet(featureSet string) (int, error) {
 }
 
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
-	return FsDriver{d.rootPath, d.featureFlags, d.modify}, nil
+	return FsDriver{d.rootPath, d.featureFlags}, nil
 }
 
 // FsDriver is a filesystem FTP driver.
@@ -81,7 +80,6 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 type FsDriver struct {
 	rootPath     string
 	featureFlags int
-	modify       bool
 }
 
 func (FsDriver) Init(conn *ftp.Conn) {

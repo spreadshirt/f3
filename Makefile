@@ -1,4 +1,4 @@
-.PHONY: clean docker
+.PHONY: clean docker test
 
 BIN		:=ftp2s3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
@@ -16,6 +16,9 @@ $(BIN): $(BIN).go $(SOURCES) $(GO_PATH)
 
 docker: $(BIN)
 	docker build -t $(BIN) .
+
+test:
+	GOPATH=$(GO_PATH) go test -v ./ftplib/...
 
 clean:
 	rm $(BIN)

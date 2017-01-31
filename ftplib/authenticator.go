@@ -1,10 +1,8 @@
 package ftplib
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"os"
+	"io/ioutil"
 	"strings"
 )
 
@@ -15,18 +13,22 @@ type Authenticator struct {
 }
 
 // AuthenticatorFromFile returns an Authenticator with credentials parsed from the given file path.
-// The file must contain one credential entry per line with username and password separated by a `:`.
+// The file must contain one credential pair per line where username and password is separated by a `:`.
 func AuthenticatorFromFile(path string) (Authenticator, error) {
+	raw, err := ioutil.ReadFile(path)
+	if err != nil {
+		return Authenticator{}, err
+	}
+	return AuthenticatorFromString(string(raw))
+}
+
+// AuthenticatorFromString returns an Authenticator whose credentials where parsed from the given string.
+// The contents must contain one credential pair per line where username and password is separated by a `:`.
+func AuthenticatorFromString(contents string) (Authenticator, error) {
 	auth := Authenticator{make(map[string]string)}
 
-	file, err := os.Open(path)
-	if err != nil {
-		return auth, err
-	}
-
-	reader := bufio.NewReader(file)
-	for {
-		line, err := reader.ReadString('\n')
+	lines := strings.Split(contents, "\n")
+	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if len(line) > 0 {
 			parts := strings.SplitN(line, ":", 2)
@@ -34,15 +36,9 @@ func AuthenticatorFromFile(path string) (Authenticator, error) {
 				auth.credentials[parts[0]] = parts[1]
 			}
 		}
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return auth, err
-		}
 	}
 	if len(auth.credentials) == 0 {
-		return auth, fmt.Errorf("No credentials found in: %s", path)
+		return auth, fmt.Errorf("No credentials found")
 	}
 	return auth, nil
 }

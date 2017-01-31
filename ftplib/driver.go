@@ -79,9 +79,9 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 // FsDriver is a filesystem FTP driver.
 // Implements https://godoc.org/github.com/goftp/server#Driver
 type FsDriver struct {
-	rootPath string
+	rootPath     string
 	featureFlags int
-	modify   bool
+	modify       bool
 }
 
 func (FsDriver) Init(conn *ftp.Conn) {
@@ -123,7 +123,7 @@ func (d FsDriver) Stat(pathname string) (ftp.FileInfo, error) {
 }
 
 func (d FsDriver) ChangeDir(pathname string) error {
-	if d.featureFlags & F_CD == 0 {
+	if d.featureFlags&F_CD == 0 {
 		return notEnabled("CD")
 	}
 	d.rootPath = d.buildPath(pathname)
@@ -131,7 +131,7 @@ func (d FsDriver) ChangeDir(pathname string) error {
 }
 
 func (d FsDriver) ListDir(pathname string, cb func(ftp.FileInfo) error) error {
-	if d.featureFlags & F_LS == 0 {
+	if d.featureFlags&F_LS == 0 {
 		return notEnabled("LS")
 	}
 	pathname = d.buildPath(pathname)
@@ -149,21 +149,21 @@ func (d FsDriver) ListDir(pathname string, cb func(ftp.FileInfo) error) error {
 }
 
 func (d FsDriver) DeleteDir(pathname string) error {
-	if d.featureFlags & F_RMDIR == 0 {
+	if d.featureFlags&F_RMDIR == 0 {
 		return notEnabled("RMDIR")
 	}
 	return os.RemoveAll(d.buildPath(pathname))
 }
 
 func (d FsDriver) DeleteFile(pathname string) error {
-	if d.featureFlags & F_RM == 0 {
+	if d.featureFlags&F_RM == 0 {
 		return notEnabled("RM")
 	}
 	return os.Remove(d.buildPath(pathname))
 }
 
 func (d FsDriver) Rename(oldPath string, newPath string) error {
-	if d.featureFlags & F_MV == 0 {
+	if d.featureFlags&F_MV == 0 {
 		return notEnabled("MV")
 	}
 	oldPath = d.buildPath(oldPath)
@@ -172,14 +172,14 @@ func (d FsDriver) Rename(oldPath string, newPath string) error {
 }
 
 func (d FsDriver) MakeDir(pathname string) error {
-	if d.featureFlags & F_MKDIR == 0 {
+	if d.featureFlags&F_MKDIR == 0 {
 		return notEnabled("MKDIR")
 	}
 	return os.MkdirAll(d.buildPath(pathname), 0755)
 }
 
 func (d FsDriver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, error) {
-	if d.featureFlags & F_GET == 0 {
+	if d.featureFlags&F_GET == 0 {
 		return -1, nil, notEnabled("GET")
 	}
 	file, err := os.Open(d.buildPath(pathname))
@@ -198,7 +198,7 @@ func (d FsDriver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, 
 }
 
 func (d FsDriver) PutFile(pathname string, data io.Reader, appendMode bool) (int64, error) {
-	if d.featureFlags & F_PUT == 0 {
+	if d.featureFlags&F_PUT == 0 {
 		return -1, notEnabled("PUT")
 	}
 	pathname = d.buildPath(pathname)

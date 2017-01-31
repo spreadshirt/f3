@@ -1,15 +1,21 @@
-.PHONY: clean
+.PHONY: clean docker
 
 BIN		:=ftp2s3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
-SOURCES	:=$(wildcard *.go **/*.go)
+SOURCES	:=$(wildcard ftplib/*.go)
 GO_PATH	:=$(shell pwd)/.go
 
 all: $(BIN)
 
-$(BIN): $(SOURCES)
+$(GO_PATH):
+	s/bootstrap
+
+$(BIN): $(BIN).go $(SOURCES) $(GO_PATH)
 	GOPATH=$(GO_PATH) go build $(GO_FLAGS) $@.go
+
+docker: $(BIN)
+	docker build -t $(BIN) .
 
 clean:
 	rm $(BIN)

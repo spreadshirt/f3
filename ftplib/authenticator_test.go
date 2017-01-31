@@ -5,7 +5,7 @@ import (
 )
 
 func TestAuthenticatorFromString(t *testing.T) {
-	test_dataset := []struct {
+	testDataSet := []struct {
 		id         string
 		raw        string
 		parsed     map[string]string
@@ -41,7 +41,7 @@ func TestAuthenticatorFromString(t *testing.T) {
 			}, false,
 		},
 	}
-	for _, testData := range test_dataset {
+	for _, testData := range testDataSet {
 		auth, err := AuthenticatorFromString(testData.raw)
 		if err != nil && !testData.shouldFail {
 			t.Errorf("Test %s: should fail but succeeded", testData.id)

@@ -14,6 +14,13 @@ $(GO_PATH):
 $(BIN): $(BIN).go $(SOURCES) $(GO_PATH)
 	GOPATH=$(GO_PATH) go build $(GO_FLAGS) $@.go
 
+install: test $(BIN)
+ifeq ($$EUID, 0)
+	@install --mode=0755 --verbose $(BIN) /usr/local/bin
+else
+	@install --mode=0755 --verbose $(BIN) $$HOME/.local/bin
+endif
+
 docker: $(BIN)
 	docker build -t $(BIN) .
 

@@ -23,13 +23,13 @@ func main() {
 	app.Description = "A tool that acts as a bridge between FTP and a s3/ceph bucket"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:    "ftp-addr",
-			Value:   "127.0.0.1:21",
-			Usage:   "Address of the FTP server interface, default: 127.0.0.1:21",
+			Name:  "ftp-addr",
+			Value: "127.0.0.1:21",
+			Usage: "Address of the FTP server interface, default: 127.0.0.1:21",
 		},
 		cli.StringFlag{
-			Name:         "ftp-root",
-			Usage:        "Root path of the FTP server, default is the current working directory",
+			Name:  "ftp-root",
+			Usage: "Root path of the FTP server, default is the current working directory",
 		},
 		cli.StringFlag{
 			Name:  "ftp-features",
@@ -37,7 +37,7 @@ func main() {
 			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
 		},
 		cli.BoolFlag{
-			Name: "ftp-no-overwrite",
+			Name:  "ftp-no-overwrite",
 			Usage: "Prevent files from being overwritten",
 		},
 	}
@@ -87,12 +87,12 @@ func run(context *cli.Context) error {
 		return err
 	}
 	opts := ftp.ServerOpts{
-		Factory:         factory,
-		Auth:            creds,
-		Name:            APP_NAME,
-		Hostname:        ftpHost,
-		Port:            int(ftpPort),
-		WelcomeMessage:  fmt.Sprintf("%s says hello!", APP_NAME),
+		Factory:        factory,
+		Auth:           creds,
+		Name:           APP_NAME,
+		Hostname:       ftpHost,
+		Port:           int(ftpPort),
+		WelcomeMessage: fmt.Sprintf("%s says hello!", APP_NAME),
 	}
 	ftpServer := ftp.NewServer(&opts)
 	return ftpServer.ListenAndServe()

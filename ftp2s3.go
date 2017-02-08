@@ -11,13 +11,15 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-const APP_NAME string = "ftp2s3"
+// AppName is the name of the program.
+const AppName string = "ftp2s3"
 
+// Version is the current version of ftps3.
 var Version string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = APP_NAME
+	app.Name = AppName
 	app.Usage = "an FTP to s3/ceph bridge"
 	app.Version = Version
 	app.Description = "A tool that acts as a bridge between FTP and a s3/ceph bucket"
@@ -89,10 +91,10 @@ func run(context *cli.Context) error {
 	opts := ftp.ServerOpts{
 		Factory:        factory,
 		Auth:           creds,
-		Name:           APP_NAME,
+		Name:           AppName,
 		Hostname:       ftpHost,
 		Port:           int(ftpPort),
-		WelcomeMessage: fmt.Sprintf("%s says hello!", APP_NAME),
+		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
 	}
 	ftpServer := ftp.NewServer(&opts)
 	return ftpServer.ListenAndServe()

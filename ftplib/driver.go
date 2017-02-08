@@ -22,7 +22,7 @@ func (FsDriver) Init(conn *ftp.Conn) {
 	conn.Serve()
 }
 
-// Contains file information.
+// FileInfo contains file information.
 type FileInfo struct {
 	os.FileInfo
 }

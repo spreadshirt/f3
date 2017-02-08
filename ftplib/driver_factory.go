@@ -3,8 +3,8 @@ package ftplib
 import (
 	"errors"
 	"fmt"
-	"strings"
 	ftp "github.com/goftp/server"
+	"strings"
 )
 
 // DriverFactory builds FTP drivers.

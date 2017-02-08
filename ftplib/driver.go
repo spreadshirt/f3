@@ -2,11 +2,11 @@ package ftplib
 
 import (
 	"fmt"
+	ftp "github.com/goftp/server"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
-	ftp "github.com/goftp/server"
 )
 
 // FsDriver is a filesystem FTP driver.
@@ -155,7 +155,7 @@ func (d FsDriver) PutFile(pathname string, data io.Reader, appendMode bool) (int
 	}
 	defer file.Close()
 
-	buf := make([]byte, 1024 * 1024)
+	buf := make([]byte, 1024*1024)
 	cnt := int64(0)
 	for {
 		n, err := data.Read(buf)

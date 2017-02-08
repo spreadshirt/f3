@@ -18,7 +18,8 @@ mkdir -p $project_root/.go/src/$namespace
 rm -f $full_path && link_into_gopath
 
 pushd $project_root &>/dev/null
-GOPATH=$project_root/.go go get -d -v ./...
+# fix go get for gopkg.in, see https://github.com/alecthomas/kingpin/issues/174
+git config http.https://gopkg.in.followRedirects && GOPATH=$project_root/.go go get -d -v ./...
 popd &>/dev/null
 
 # vim: set syntax=sh

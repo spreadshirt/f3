@@ -27,6 +27,15 @@ docker: $(BIN)
 test:
 	GOPATH=$(GO_PATH) go test -v ./ftplib/...
 
+check: vet lint
+
+vet:
+	go vet . ./ftplib
+
+lint:
+	golint .
+	golint ./ftplib
+
 clean:
 	rm -f $(BIN)
 

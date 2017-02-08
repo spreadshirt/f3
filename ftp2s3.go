@@ -73,12 +73,12 @@ func run(context *cli.Context) error {
 	}
 	parts := strings.SplitN(ftpAddr, ":", 2)
 	ftpHost := "127.0.0.1"
-	ftpPort := int64(21)
+	ftpPort := uint64(21)
 	if len(parts) == 1 {
 		ftpHost = parts[0]
 	} else if len(parts) > 1 {
 		ftpHost = parts[0]
-		ftpPort, err = strconv.ParseInt(parts[1], 10, 16)
+		ftpPort, err = strconv.ParseUint(parts[1], 10, 16)
 		if err != nil {
 			return err
 		}

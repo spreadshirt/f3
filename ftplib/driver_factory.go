@@ -25,14 +25,14 @@ func NewDriverFactory(rootPath string, featureSet string, noOverwrite bool) (Dri
 }
 
 const (
-	F_CD    = 1 << iota
-	F_LS    = 1 << iota
-	F_RMDIR = 1 << iota
-	F_RM    = 1 << iota
-	F_MV    = 1 << iota
-	F_MKDIR = 1 << iota
-	F_GET   = 1 << iota
-	F_PUT   = 1 << iota
+	featureChangeDir = 1 << iota
+	featureList      = 1 << iota
+	featureRemoveDir = 1 << iota
+	featureRemove    = 1 << iota
+	featureMove      = 1 << iota
+	featureMakeDir   = 1 << iota
+	featureGet       = 1 << iota
+	featurePut       = 1 << iota
 )
 
 func parseFeatureSet(featureSet string) (int, error) {
@@ -45,21 +45,21 @@ func parseFeatureSet(featureSet string) (int, error) {
 	for _, feature := range features {
 		switch strings.ToLower(feature) {
 		case "cd":
-			featureFlags |= F_CD
+			featureFlags |= featureChangeDir
 		case "ls":
-			featureFlags |= F_LS
+			featureFlags |= featureList
 		case "rmdir":
-			featureFlags |= F_RMDIR
+			featureFlags |= featureRemoveDir
 		case "rm":
-			featureFlags |= F_RM
+			featureFlags |= featureRemove
 		case "mv":
-			featureFlags |= F_MV
+			featureFlags |= featureMove
 		case "mkdir":
-			featureFlags |= F_MKDIR
+			featureFlags |= featureMakeDir
 		case "get":
-			featureFlags |= F_GET
+			featureFlags |= featureGet
 		case "put":
-			featureFlags |= F_PUT
+			featureFlags |= featurePut
 		default:
 			return 0, fmt.Errorf("Unknown feature flag: %q", feature)
 		}
@@ -67,6 +67,7 @@ func parseFeatureSet(featureSet string) (int, error) {
 	return featureFlags, nil
 }
 
+// NewDriver returns a new FTP driver.
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 	return FsDriver{d.rootPath, d.featureFlags, d.noOverwrite}, nil
 }

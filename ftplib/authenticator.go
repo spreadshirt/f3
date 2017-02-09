@@ -43,6 +43,7 @@ func AuthenticatorFromString(contents string) (Authenticator, error) {
 	return auth, nil
 }
 
+// CheckPasswd returns `true` if username and password was found in the credentials store.
 func (c Authenticator) CheckPasswd(username, password string) (bool, error) {
 	for user, pass := range c.credentials {
 		if username == user && password == pass {

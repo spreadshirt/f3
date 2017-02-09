@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -uo pipefail
+
+hash go &> /dev/null
+[[ $? -ne 0 ]]\
+    && echo "go toolchain is not installed"\
+    && exit 2
+
 namespace='git.spreadomat.net/sprd'
 project_root="$(cd $(dirname $0)/.. && pwd)"
 project_name="$(basename $project_root)"

@@ -21,7 +21,7 @@ func TestParseFeatureSet(t *testing.T) {
 		{
 			"full-set",
 			"cd,ls,rmdir,rm,mv,mkdir,get,put",
-			F_CD | F_LS | F_RMDIR | F_RM | F_MV | F_MKDIR | F_GET | F_PUT,
+			featureChangeDir | featureList | featureRemoveDir | featureRemove | featureMove | featureMakeDir | featureGet | featurePut,
 			false,
 		},
 		{

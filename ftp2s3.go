@@ -11,25 +11,27 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-const APP_NAME string = "ftp2s3"
+// AppName is the name of the program.
+const AppName string = "ftp2s3"
 
+// Version is the current version of ftps3.
 var Version string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = APP_NAME
+	app.Name = AppName
 	app.Usage = "an FTP to s3/ceph bridge"
 	app.Version = Version
 	app.Description = "A tool that acts as a bridge between FTP and a s3/ceph bucket"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:    "ftp-addr",
-			Value:   "127.0.0.1:21",
-			Usage:   "Address of the FTP server interface, default: 127.0.0.1:21",
+			Name:  "ftp-addr",
+			Value: "127.0.0.1:21",
+			Usage: "Address of the FTP server interface, default: 127.0.0.1:21",
 		},
 		cli.StringFlag{
-			Name:         "ftp-root",
-			Usage:        "Root path of the FTP server, default is the current working directory",
+			Name:  "ftp-root",
+			Usage: "Root path of the FTP server, default is the current working directory",
 		},
 		cli.StringFlag{
 			Name:  "ftp-features",
@@ -37,7 +39,7 @@ func main() {
 			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
 		},
 		cli.BoolFlag{
-			Name: "ftp-no-overwrite",
+			Name:  "ftp-no-overwrite",
 			Usage: "Prevent files from being overwritten",
 		},
 	}
@@ -47,7 +49,7 @@ func main() {
 
 func run(context *cli.Context) error {
 	if context.NArg() < 1 {
-		return fmt.Errorf("Not enough arguments, path to authenticator file is missing!")
+		return fmt.Errorf("not enough arguments, path to credentials file is missing")
 	}
 
 	creds, err := ftplib.AuthenticatorFromFile(context.Args().First())
@@ -71,12 +73,12 @@ func run(context *cli.Context) error {
 	}
 	parts := strings.SplitN(ftpAddr, ":", 2)
 	ftpHost := "127.0.0.1"
-	ftpPort := int64(21)
+	ftpPort := uint64(21)
 	if len(parts) == 1 {
 		ftpHost = parts[0]
 	} else if len(parts) > 1 {
 		ftpHost = parts[0]
-		ftpPort, err = strconv.ParseInt(parts[1], 10, 16)
+		ftpPort, err = strconv.ParseUint(parts[1], 10, 16)
 		if err != nil {
 			return err
 		}
@@ -87,12 +89,12 @@ func run(context *cli.Context) error {
 		return err
 	}
 	opts := ftp.ServerOpts{
-		Factory:         factory,
-		Auth:            creds,
-		Name:            APP_NAME,
-		Hostname:        ftpHost,
-		Port:            int(ftpPort),
-		WelcomeMessage:  fmt.Sprintf("%s says hello!", APP_NAME),
+		Factory:        factory,
+		Auth:           creds,
+		Name:           AppName,
+		Hostname:       ftpHost,
+		Port:           int(ftpPort),
+		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
 	}
 	ftpServer := ftp.NewServer(&opts)
 	return ftpServer.ListenAndServe()

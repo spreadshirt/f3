@@ -19,3 +19,5 @@ $ git clone github.com/spreadshirt/ftp2s3.git
 $ cd ftp2s3
 $ s/make [test|clean|docker]
 ```
+
+- `s/make lint` requires `golint` which can be installed by running: `go get -u github.com/golang/lint/golint`

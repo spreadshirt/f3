@@ -2,11 +2,11 @@ package ftplib
 
 import (
 	"fmt"
+	ftp "github.com/goftp/server"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
-	ftp "github.com/goftp/server"
 )
 
 // FsDriver is a filesystem FTP driver.
@@ -17,19 +17,23 @@ type FsDriver struct {
 	noOverwrite  bool
 }
 
+// Init initializes the filesystem driver.
 func (FsDriver) Init(conn *ftp.Conn) {
 	// start as go routine and save connections into list for later management
 	conn.Serve()
 }
 
-// Contains file information.
+// FileInfo contains file information.
 type FileInfo struct {
 	os.FileInfo
 }
 
+// Owner returns the file owner (atm "Unknown").
 func (f FileInfo) Owner() string {
 	return "Unknown"
 }
+
+// Group returns the file's group (atm "Unknown").
 func (f FileInfo) Group() string {
 	return "Unknown"
 }
@@ -42,6 +46,7 @@ func notEnabled(op string) error {
 	return fmt.Errorf("%q is not enabled", op)
 }
 
+// Stat returns file informations for the object located at the given path.
 func (d FsDriver) Stat(pathname string) (ftp.FileInfo, error) {
 	pathname = d.buildPath(pathname)
 	file, err := os.Open(pathname)
@@ -55,16 +60,18 @@ func (d FsDriver) Stat(pathname string) (ftp.FileInfo, error) {
 	return FileInfo{info}, nil
 }
 
+// ChangeDir changes the current directory into the given path.
 func (d FsDriver) ChangeDir(pathname string) error {
-	if d.featureFlags&F_CD == 0 {
+	if d.featureFlags&featureChangeDir == 0 {
 		return notEnabled("CD")
 	}
 	d.rootPath = d.buildPath(pathname)
 	return nil
 }
 
+// ListDir calls the callback function with a file info for each file in the directory listing at `pathname`.
 func (d FsDriver) ListDir(pathname string, cb func(ftp.FileInfo) error) error {
-	if d.featureFlags&F_LS == 0 {
+	if d.featureFlags&featureList == 0 {
 		return notEnabled("LS")
 	}
 	pathname = d.buildPath(pathname)
@@ -81,22 +88,25 @@ func (d FsDriver) ListDir(pathname string, cb func(ftp.FileInfo) error) error {
 	return nil
 }
 
+// DeleteDir removes the directory located at `pathname`.
 func (d FsDriver) DeleteDir(pathname string) error {
-	if d.featureFlags&F_RMDIR == 0 {
+	if d.featureFlags&featureRemoveDir == 0 {
 		return notEnabled("RMDIR")
 	}
 	return os.RemoveAll(d.buildPath(pathname))
 }
 
+// DeleteFile deletes the file at `pathname`.
 func (d FsDriver) DeleteFile(pathname string) error {
-	if d.featureFlags&F_RM == 0 {
+	if d.featureFlags&featureRemove == 0 {
 		return notEnabled("RM")
 	}
 	return os.Remove(d.buildPath(pathname))
 }
 
+// Rename moves the object located at `oldPath` to `newPath`.
 func (d FsDriver) Rename(oldPath string, newPath string) error {
-	if d.featureFlags&F_MV == 0 {
+	if d.featureFlags&featureMove == 0 {
 		return notEnabled("MV")
 	}
 	oldPath = d.buildPath(oldPath)
@@ -104,15 +114,17 @@ func (d FsDriver) Rename(oldPath string, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
+// MakeDir creates a directory at `pathname`.
 func (d FsDriver) MakeDir(pathname string) error {
-	if d.featureFlags&F_MKDIR == 0 {
+	if d.featureFlags&featureMakeDir == 0 {
 		return notEnabled("MKDIR")
 	}
 	return os.MkdirAll(d.buildPath(pathname), 0755)
 }
 
+// GetFile returns the file at `pathname` from the given `offset`.
 func (d FsDriver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, error) {
-	if d.featureFlags&F_GET == 0 {
+	if d.featureFlags&featureGet == 0 {
 		return -1, nil, notEnabled("GET")
 	}
 	file, err := os.Open(d.buildPath(pathname))
@@ -130,8 +142,9 @@ func (d FsDriver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, 
 	return info.Size(), file, nil
 }
 
+// PutFile stores the data stream in a file located at `pathname`, or appends this file.
 func (d FsDriver) PutFile(pathname string, data io.Reader, appendMode bool) (int64, error) {
-	if d.featureFlags&F_PUT == 0 {
+	if d.featureFlags&featurePut == 0 {
 		return -1, notEnabled("PUT")
 	}
 	pathname = d.buildPath(pathname)
@@ -155,7 +168,7 @@ func (d FsDriver) PutFile(pathname string, data io.Reader, appendMode bool) (int
 	}
 	defer file.Close()
 
-	buf := make([]byte, 1024 * 1024)
+	buf := make([]byte, 1024*1024)
 	cnt := int64(0)
 	for {
 		n, err := data.Read(buf)

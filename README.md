@@ -17,6 +17,5 @@ Make sure that a go 1.7+ distribution is available on your system.
 ```sh
 $ git clone github.com/spreadshirt/ftp2s3.git
 $ cd ftp2s3
-$ s/bootstrap
-$ make [test|clean|docker]
+$ s/make [test|clean|docker]
 ```

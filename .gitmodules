@@ -1,0 +1,9 @@
+[submodule "vendor/github.com/goftp/server"]
+	path = vendor/github.com/goftp/server
+	url = https://github.com/goftp/server
+[submodule "vendor/gopkg.in/urfave/cli.v1"]
+	path = vendor/gopkg.in/urfave/cli.v1
+	url = https://github.com/urfave/cli.git
+[submodule "vendor/gopkg.in/yaml.v2"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://github.com/go-yaml/yaml.git

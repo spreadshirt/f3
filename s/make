@@ -1,0 +1,9 @@
+#!/bin/bash
+
+project_root="$(cd $(dirname $0)/.. && pwd)"
+
+pushd $project_root &>/dev/null
+make $@
+popd &>/dev/null
+
+# vim: set syntax=sh:

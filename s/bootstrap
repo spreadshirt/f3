@@ -1,9 +1,15 @@
 #!/bin/bash
 
-namespace='git.spreadomat.net/sprd'
+hash go &> /dev/null
+[[ $? -ne 0 ]]\
+    && echo "go toolchain is not installed"\
+    && exit 2
+
 project_root="$(cd $(dirname $0)/.. && pwd)"
-project_name="$(basename $project_root)"
-full_path="$project_root/.go/src/$namespace/$project_name"
+
+source s/env
+
+git submodule update --init && git submodule update --checkout
 
 link_into_gopath() {
     echo "linking \"$project_root\" into local GOPATH: $full_path" &&\
@@ -17,9 +23,4 @@ mkdir -p $project_root/.go/src/$namespace
 
 rm -f $full_path && link_into_gopath
 
-pushd $project_root &>/dev/null
-# fix go get for gopkg.in, see https://github.com/alecthomas/kingpin/issues/174
-git config http.https://gopkg.in.followRedirects && GOPATH=$project_root/.go go get -d -v ./...
-popd &>/dev/null
-
-# vim: set syntax=sh
+# vim: set syntax=sh:

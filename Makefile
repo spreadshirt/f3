@@ -28,4 +28,7 @@ test:
 	GOPATH=$(GO_PATH) go test -v ./ftplib/...
 
 clean:
-	rm $(BIN)
+	rm -f $(BIN)
+
+clean-all: clean
+	rm -rf .go

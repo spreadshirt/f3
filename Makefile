@@ -12,7 +12,7 @@ $(GO_PATH):
 	s/bootstrap
 
 $(BIN): $(BIN).go $(SOURCES) $(GO_PATH)
-	GOPATH=$(GO_PATH) go build $(GO_FLAGS) $@.go
+	GOPATH=$(GO_PATH) go build $(GO_FLAGS) github.com/spreadshirt/$(BIN)
 
 install: test $(BIN)
 ifeq ($$EUID, 0)

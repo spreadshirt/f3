@@ -1,16 +1,13 @@
 #!/bin/bash
 
-set -uo pipefail
-
 hash go &> /dev/null
 [[ $? -ne 0 ]]\
     && echo "go toolchain is not installed"\
     && exit 2
 
-namespace='git.spreadomat.net/sprd'
 project_root="$(cd $(dirname $0)/.. && pwd)"
-project_name="$(basename $project_root)"
-full_path="$project_root/.go/src/$namespace/$project_name"
+
+source s/env
 
 git submodule update --init && git submodule update --checkout
 
@@ -25,9 +22,5 @@ mkdir -p $project_root/.go/src/$namespace
     exit 1
 
 rm -f $full_path && link_into_gopath
-
-pushd $project_root &>/dev/null
-GOPATH=$project_root/.go go get -d -v ./...
-popd &>/dev/null
 
 # vim: set syntax=sh

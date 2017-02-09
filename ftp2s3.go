@@ -8,7 +8,7 @@ import (
 
 	"git.spreadomat.net/sprd/ftp2s3/ftplib"
 	ftp "github.com/goftp/server"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 const APP_NAME string = "ftp2s3"

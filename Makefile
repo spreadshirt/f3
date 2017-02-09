@@ -43,4 +43,4 @@ clean:
 	rm -f $(BIN)
 
 clean-all: clean
-	rm -rf .go
+	rm -rf .go vendor

@@ -6,4 +6,4 @@ pushd $project_root &>/dev/null
 make $@
 popd &>/dev/null
 
-# vim: set syntax=sh
+# vim: set syntax=sh:

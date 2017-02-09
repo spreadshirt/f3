@@ -5,6 +5,8 @@ project_root="$(cd $(dirname $0)/.. && pwd)"
 project_name="$(basename $project_root)"
 full_path="$project_root/.go/src/$namespace/$project_name"
 
+git submodule update --init && git submodule update --checkout
+
 link_into_gopath() {
     echo "linking \"$project_root\" into local GOPATH: $full_path" &&\
     ln -s $project_root $full_path

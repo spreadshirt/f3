@@ -33,11 +33,12 @@ fmt:
 check: vet lint
 
 vet:
-	go vet . ./ftplib
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)/ftplib
 
 lint:
-	golint .
-	golint ./ftplib
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)/ftplib
 
 clean:
 	rm -f $(BIN)

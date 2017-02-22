@@ -1,4 +1,4 @@
-package ftplib
+package server
 
 import (
 	"errors"

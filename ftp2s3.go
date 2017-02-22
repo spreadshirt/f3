@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.spreadomat.net/sprd/ftp2s3/ftplib"
+	"git.spreadomat.net/sprd/ftp2s3/server"
 	ftp "github.com/goftp/server"
 	"gopkg.in/urfave/cli.v1"
 )
@@ -65,7 +65,7 @@ func run(context *cli.Context) error {
 		return fmt.Errorf("not enough arguments, path to FTP credentials file is missing")
 	}
 
-	creds, err := ftplib.AuthenticatorFromFile(context.Args().First())
+	creds, err := server.AuthenticatorFromFile(context.Args().First())
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func run(context *cli.Context) error {
 		return err
 	}
 
-	factory, err := ftplib.NewDriverFactory(&ftplib.FactoryConfig{
+	factory, err := server.NewDriverFactory(&server.FactoryConfig{
 		FtpRoot:        context.String("ftp-root"),
 		FtpFeatures:    context.String("ftp-features"),
 		FtpNoOverwrite: context.Bool("ftp-no-overwrite"),

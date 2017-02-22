@@ -62,7 +62,7 @@ func main() {
 
 func run(context *cli.Context) error {
 	if context.NArg() < 1 {
-		return fmt.Errorf("not enough arguments, path to credentials file is missing")
+		return fmt.Errorf("not enough arguments, path to FTP credentials file is missing")
 	}
 
 	creds, err := ftplib.AuthenticatorFromFile(context.Args().First())

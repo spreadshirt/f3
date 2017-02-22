@@ -42,7 +42,7 @@ func (d S3Driver) ChangeDir(pathname string) error {
 }
 
 func (d S3Driver) ListDir(pathname string, cb func(ftp.FileInfo) error) error {
-	if d.featureFlags&F_LS == 0 {
+	if d.featureFlags&featureList == 0 {
 		return notEnabled("LS")
 	}
 	// TODO object listing
@@ -55,7 +55,7 @@ func (d S3Driver) DeleteDir(pathname string) error {
 }
 
 func (d S3Driver) DeleteFile(pathname string) error {
-	if d.featureFlags&F_RM == 0 {
+	if d.featureFlags&featureRemove == 0 {
 		return notEnabled("RM")
 	}
 	// TODO remove s3 objects by prefix
@@ -73,7 +73,7 @@ func (d S3Driver) MakeDir(pathname string) error {
 }
 
 func (d S3Driver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, error) {
-	if d.featureFlags&F_GET == 0 {
+	if d.featureFlags&featureGet == 0 {
 		return -1, nil, notEnabled("GET")
 	}
 	// TODO s3 GET object
@@ -81,7 +81,7 @@ func (d S3Driver) GetFile(pathname string, offset int64) (int64, io.ReadCloser, 
 }
 
 func (d S3Driver) PutFile(pathname string, data io.Reader, appendMode bool) (int64, error) {
-	if d.featureFlags&F_PUT == 0 {
+	if d.featureFlags&featurePut == 0 {
 		return -1, notEnabled("PUT")
 	}
 	// TODO s3 PUT file

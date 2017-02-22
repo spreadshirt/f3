@@ -30,6 +30,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 	return FsDriver{d.rootPath, d.featureFlags, d.noOverwrite}, nil
 }
 
+// FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.
 type FactoryConfig struct {
 	FtpRoot        string
 	FtpFeatures    string

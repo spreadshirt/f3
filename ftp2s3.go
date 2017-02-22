@@ -42,6 +42,19 @@ func main() {
 			Name:  "ftp-no-overwrite",
 			Usage: "Prevent files from being overwritten",
 		},
+		cli.StringFlag{
+			Name:  "s3-credentials",
+			Usage: "AccessKey:SecretKey",
+		},
+		cli.StringFlag{
+			Name:  "s3-bucket",
+			Usage: "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com",
+		},
+		cli.StringFlag{
+			Name:  "s3-region",
+			Value: "default",
+			Usage: "Region where the s3 bucket is located in",
+		},
 	}
 	app.Action = run
 	app.Run(os.Args)
@@ -57,45 +70,50 @@ func run(context *cli.Context) error {
 		return err
 	}
 
-	ftpRoot := context.String("ftp-root")
-	// set FTP root to the current working directory if unset
-	if ftpRoot == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		ftpRoot = wd
-	}
-
-	ftpAddr := context.String("ftp-addr")
-	if ftpAddr == "" {
-		return fmt.Errorf("FTP address is empty")
-	}
-	parts := strings.SplitN(ftpAddr, ":", 2)
-	ftpHost := "127.0.0.1"
-	ftpPort := uint64(21)
-	if len(parts) == 1 {
-		ftpHost = parts[0]
-	} else if len(parts) > 1 {
-		ftpHost = parts[0]
-		ftpPort, err = strconv.ParseUint(parts[1], 10, 16)
-		if err != nil {
-			return err
-		}
-	}
-
-	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"), context.Bool("ftp-no-overwrite"))
+	ftpHost, ftpPort, err := splitFtpAddr(context.String("ftp-addr"))
 	if err != nil {
 		return err
 	}
-	opts := ftp.ServerOpts{
+
+	factory, err := ftplib.NewDriverFactory(&ftplib.FactoryConfig{
+		FtpRoot:        context.String("ftp-root"),
+		FtpFeatures:    context.String("ftp-features"),
+		FtpNoOverwrite: context.Bool("ftp-no-overwrite"),
+		S3Credentials:  context.String("s3-credentials"),
+		S3BucketURL:    context.String("s3-bucket"),
+		S3Region:       context.String("s3-region"),
+	})
+	if err != nil {
+		return err
+	}
+
+	ftpServer := ftp.NewServer(&ftp.ServerOpts{
 		Factory:        factory,
 		Auth:           creds,
 		Name:           AppName,
 		Hostname:       ftpHost,
-		Port:           int(ftpPort),
+		Port:           ftpPort,
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
-	}
-	ftpServer := ftp.NewServer(&opts)
+	})
 	return ftpServer.ListenAndServe()
+}
+
+func splitFtpAddr(addr string) (string, int, error) {
+	addr = strings.TrimSpace(addr)
+	if addr == "" {
+		return "", -1, fmt.Errorf("Empty FTP address")
+	}
+	parts := strings.SplitN(addr, ":", 2)
+	host := parts[0]
+	port := uint64(21)
+	if len(parts) < 2 { // no port given
+		return host, int(port), nil
+	}
+
+	port, err := strconv.ParseUint(parts[1], 10, 16)
+	if err != nil {
+		return host, -1, fmt.Errorf("Invalid FTP port %q: %s", parts[1], err)
+	}
+
+	return host, int(port), err
 }

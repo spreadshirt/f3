@@ -28,7 +28,7 @@ test:
 	GOPATH=$(GO_PATH) go test -v ./ftplib/...
 
 fmt:
-	gofmt -w . ./ftplib
+	@gofmt -w $(BIN).go ftplib
 
 check: vet lint
 

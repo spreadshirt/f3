@@ -53,3 +53,73 @@ func TestParseFeatureSet(t *testing.T) {
 		}
 	}
 }
+
+func TestDriverFactory(t *testing.T) {
+	testDataSet := []struct {
+		config     FactoryConfig
+		ftpRoot    string
+		bucketName string
+		id         string
+		shouldFail bool
+	}{
+		{
+			FactoryConfig{},
+			"",
+			"",
+			"empty-config",
+			true,
+		},
+		{
+			FactoryConfig{
+				"",
+				DefaultFeatureSet,
+				false,
+				"access:secret",
+				"https://some-bucket.somewhere.com",
+				DefaultRegion,
+				true,
+			},
+			"",
+			"some-bucket",
+			"valid-minimal-config",
+			false,
+		},
+		{
+			FactoryConfig{
+				"/tmp/ftproot",
+				"ls,rm,mkdir,get",
+				false,
+				"access:secret",
+				"https://another-bucket.somewhere.in.some.datacenter.domain.com",
+				"us-east-1",
+				false,
+			},
+			"/tmp/ftproot",
+			"another-bucket",
+			"valid-config",
+			false,
+		},
+	}
+	for _, testData := range testDataSet {
+		factory, err := NewDriverFactory(&testData.config)
+		if err != nil && testData.shouldFail {
+			continue
+		}
+		if err != nil && !testData.shouldFail {
+			t.Errorf("Test %q failed: %s", testData.id, err)
+			continue
+		}
+		if factory.bucketName != testData.bucketName {
+			t.Errorf("Test %s: bad bucket name %q, expected %q", testData.id, factory.bucketName, testData.bucketName)
+		}
+		if factory.featureFlags == 0 {
+			t.Errorf("Test %s: Empty feature set", testData.id)
+		}
+		if factory.rootPath == "" {
+			t.Errorf("Test %s: FTP root path is empty", testData.id)
+		}
+		if testData.ftpRoot != "" && factory.rootPath != testData.ftpRoot {
+			t.Errorf("Test %s: FTP root path is %q, expected %q", testData.id, factory.rootPath, testData.ftpRoot)
+		}
+	}
+}

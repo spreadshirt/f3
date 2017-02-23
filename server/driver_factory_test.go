@@ -39,8 +39,11 @@ func TestParseFeatureSet(t *testing.T) {
 	}
 	for _, testData := range testDataSet {
 		flags, err := parseFeatureSet(testData.featureSet)
-		if err == nil && testData.shouldFail {
-			t.Errorf("Test %s: should fail but succeeded", testData.id)
+		if err != nil && testData.shouldFail {
+			continue
+		}
+		if err != nil && !testData.shouldFail {
+			t.Errorf("Test %q failed: %s", testData.id, err)
 			continue
 		}
 		if flags != testData.featureFlags {

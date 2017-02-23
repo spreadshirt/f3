@@ -24,8 +24,8 @@ endif
 docker: $(BIN)
 	docker build -t $(BIN) .
 
-test:
-	GOPATH=$(GO_PATH) go test -v ./server/...
+test: $(GO_PATH)
+	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(BIN)/server
 
 fmt:
 	@gofmt -w $(BIN).go server

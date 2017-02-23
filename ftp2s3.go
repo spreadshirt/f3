@@ -35,7 +35,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "ftp-features",
-			Value: "ls",
+			Value: server.DefaultFeatureSet,
 			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
 		},
 		cli.BoolFlag{
@@ -52,7 +52,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "s3-region",
-			Value: "default",
+			Value: server.DefaultRegion,
 			Usage: "Region where the s3 bucket is located in",
 		},
 	}

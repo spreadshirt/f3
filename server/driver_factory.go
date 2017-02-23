@@ -14,6 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+const (
+	DefaultFeatureSet = "ls"
+	DefaultRegion     = "custom"
+)
+
 // DriverFactory builds FTP drivers.
 // Implements https://godoc.org/github.com/goftp/server#DriverFactory
 type DriverFactory struct {

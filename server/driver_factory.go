@@ -3,10 +3,11 @@ package server
 import (
 	"errors"
 	"fmt"
-	ftp "github.com/goftp/server"
 	"net/url"
 	"os"
 	"strings"
+
+	ftp "github.com/goftp/server"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

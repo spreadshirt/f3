@@ -1,10 +1,12 @@
 package server
 
 import (
-	ftp "github.com/goftp/server"
+	"fmt"
 	"io"
 	"os"
 	"path"
+
+	ftp "github.com/goftp/server"
 )
 
 // S3Driver is a filesystem FTP driver.

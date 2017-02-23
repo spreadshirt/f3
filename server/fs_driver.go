@@ -2,11 +2,12 @@ package server
 
 import (
 	"fmt"
-	ftp "github.com/goftp/server"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+
+	ftp "github.com/goftp/server"
 )
 
 // FsDriver is a filesystem FTP driver.

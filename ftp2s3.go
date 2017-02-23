@@ -8,7 +8,7 @@ import (
 
 	"git.spreadomat.net/sprd/ftp2s3/server"
 	ftp "github.com/goftp/server"
-	"gopkg.in/urfave/cli.v1"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // AppName is the name of the program.

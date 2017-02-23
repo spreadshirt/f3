@@ -29,6 +29,7 @@ test: $(GO_PATH)
 
 fmt:
 	@gofmt -w $(BIN).go server
+	@goimports -w $(BIN).go server
 
 check: vet lint
 

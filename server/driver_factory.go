@@ -56,6 +56,7 @@ func setupFtp(config *FactoryConfig, factory *DriverFactory, err error) (*Factor
 	if err != nil { // fallthrough
 		return config, factory, err
 	}
+	factory.noOverwrite = config.FtpNoOverwrite
 
 	logrus.Debugf("Trying to parse feature set: %q", config.FtpFeatures)
 	featureFlags, err := parseFeatureSet(config.FtpFeatures)

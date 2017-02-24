@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"git.spreadomat.net/sprd/ftp2s3/server"
-	ftp "github.com/goftp/server"
+	ftp "github.com/klingtnet/goftp"
+	"github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -94,6 +95,7 @@ func run(context *cli.Context) error {
 		Hostname:       ftpHost,
 		Port:           ftpPort,
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
+		Logger:         &server.FTPLogger{},
 	})
 	return ftpServer.ListenAndServe()
 }

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 
-	ftp "github.com/goftp/server"
+	ftp "github.com/klingtnet/goftp"
 )
 
 // FsDriver is a filesystem FTP driver.

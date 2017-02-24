@@ -7,12 +7,11 @@ import (
 	"os"
 	"strings"
 
-	ftp "github.com/goftp/server"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	ftp "github.com/klingtnet/goftp"
 )
 
 const (

@@ -268,17 +268,22 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	}
 
 	if appendMode {
-		return -1, fmt.Errorf("can not append to object %q because the backend does not support appending", d.fqdn(key))
+		msg := fmt.Sprintf("can not append to object %q because the backend does not support appending", d.fqdn(key))
+		logrus.Error(msg)
+		return -1, fmt.Errorf(msg)
 	}
 
 	if d.noOverwrite && d.objectExists(key) {
-		return -1, fmt.Errorf("object %q already exists and overwriting is forbidden", d.fqdn(key))
+		msg := fmt.Sprintf("object %q already exists and overwriting is forbidden", d.fqdn(key))
+		logrus.Error(msg)
+		return -1, fmt.Errorf(msg)
 	}
 
 	buffer, err := ioutil.ReadAll(data)
 	if err != nil {
 		fqdn := d.fqdn(key)
-		logrus.WithFields(logrus.Fields{"Object": fqdn, "Operation": "PUT", "Error": err}).Errorf("Failed to put object %q because reading from source failed.", fqdn)
+		msg := fmt.Sprintf("Failed to put object %q because reading from source failed.", fqdn)
+		logrus.WithFields(logrus.Fields{"Object": fqdn, "Operation": "PUT", "Error": err}).Errorf(msg)
 		return -1, err
 	}
 

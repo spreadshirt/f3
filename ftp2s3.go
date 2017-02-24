@@ -105,6 +105,7 @@ func run(context *cli.Context) error {
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
 		Logger:         &server.FTPLogger{},
 	})
+	logrus.Infof("FTP server starts listening on \"%s:%d\"", ftpHost, ftpPort)
 	return ftpServer.ListenAndServe()
 }
 

@@ -52,6 +52,10 @@ func main() {
 			Value: server.DefaultRegion,
 			Usage: "Region where the s3 bucket is located in",
 		},
+		cli.BoolFlag{
+			Name:  "verbose",
+			Usage: "Print what is being done",
+		},
 	}
 	app.Action = run
 	err := app.Run(os.Args)
@@ -65,7 +69,13 @@ func run(context *cli.Context) error {
 		return fmt.Errorf("not enough arguments, path to FTP credentials file is missing")
 	}
 
-	creds, err := server.AuthenticatorFromFile(context.Args().First())
+	if context.Bool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	credentialsFilename := context.Args().First()
+	logrus.Debugf("Trying to read credentials file: %q", credentialsFilename)
+	creds, err := server.AuthenticatorFromFile(credentialsFilename)
 	if err != nil {
 		return err
 	}

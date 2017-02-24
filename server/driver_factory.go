@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	ftp "github.com/klingtnet/goftp"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -56,6 +57,7 @@ func setupFtp(config *FactoryConfig, factory *DriverFactory, err error) (*Factor
 		return config, factory, err
 	}
 
+	logrus.Debugf("Trying to parse feature set: %q", config.FtpFeatures)
 	featureFlags, err := parseFeatureSet(config.FtpFeatures)
 	if err != nil {
 		return config, factory, err
@@ -135,6 +137,7 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	bucketName, endpoint := pair[0], fmt.Sprintf("%s://%s", bucketURL.Scheme, pair[1])
 	factory.bucketName = bucketName
 
+	logrus.Debugf("Trying to create an aws session with: Region: %q, PathStyle: %v, Endpoint: %q", config.S3Region, config.S3UsePathStyle, endpoint)
 	// create an s3 session
 	awsSession, err := session.NewSession(&aws.Config{
 		Region:           aws.String(config.S3Region),

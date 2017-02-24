@@ -300,6 +300,7 @@ func (d S3Driver) fqdn(key string) string {
 
 // objectExists returns true if the object exists.
 func (d S3Driver) objectExists(key string) bool {
+	logrus.Debugf("Trying to check if object %q exists.", d.fqdn(key))
 	_, err := d.s3.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),

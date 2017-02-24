@@ -4,6 +4,10 @@ project_root="$(cd $(dirname $0)/.. && pwd)"
 
 pushd $project_root &>/dev/null
 make $@
+result=$?
 popd &>/dev/null
+
+[[ $result -ne 0 ]]\
+    && exit $result
 
 # vim: set syntax=sh:

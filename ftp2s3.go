@@ -31,10 +31,6 @@ func main() {
 			Usage: "Address of the FTP server interface, default: 127.0.0.1:21",
 		},
 		cli.StringFlag{
-			Name:  "ftp-root",
-			Usage: "Root path of the FTP server, default is the current working directory",
-		},
-		cli.StringFlag{
 			Name:  "ftp-features",
 			Value: server.DefaultFeatureSet,
 			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
@@ -78,7 +74,6 @@ func run(context *cli.Context) error {
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpRoot:        context.String("ftp-root"),
 		FtpFeatures:    context.String("ftp-features"),
 		FtpNoOverwrite: context.Bool("ftp-no-overwrite"),
 		S3Credentials:  context.String("s3-credentials"),

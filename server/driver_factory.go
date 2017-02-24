@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,21 +21,20 @@ const (
 // DriverFactory builds FTP drivers.
 // Implements https://godoc.org/github.com/goftp/server#DriverFactory
 type DriverFactory struct {
-	rootPath     string
 	featureFlags int
 	noOverwrite  bool
 	s3           *s3.S3
 	bucketName   string
+	bucketURL    *url.URL
 }
 
 // NewDriver returns a new FTP driver.
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
-	return FsDriver{d.rootPath, d.featureFlags, d.noOverwrite}, nil
+	return S3Driver{d.featureFlags, d.noOverwrite, d.s3, d.bucketName, d.bucketURL}, nil
 }
 
 // FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.
 type FactoryConfig struct {
-	FtpRoot        string
 	FtpFeatures    string
 	FtpNoOverwrite bool
 	S3Credentials  string
@@ -62,17 +60,6 @@ func setupFtp(config *FactoryConfig, factory *DriverFactory, err error) (*Factor
 	}
 	factory.featureFlags = featureFlags
 
-	// set FTP root to the current working directory if unset
-	if config.FtpRoot != "" {
-		factory.rootPath = config.FtpRoot
-		return config, factory, nil
-	}
-
-	workingDir, err := os.Getwd()
-	if err != nil {
-		return config, factory, fmt.Errorf("Could not set to default FTP root which is the current working directory: %s", err)
-	}
-	factory.rootPath = workingDir
 	return config, factory, nil
 }
 
@@ -132,11 +119,13 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	accessKey, secretKey := pair[0], pair[1]
 	sessionToken := ""
 
-	// retrieve bucket name and endpoint from bucket FQDN
 	bucketURL, err := url.Parse(config.S3BucketURL)
 	if err != nil {
 		return config, factory, err
 	}
+	factory.bucketURL = bucketURL
+
+	// retrieve bucket name and endpoint from bucket FQDN
 	pair = strings.SplitN(bucketURL.Host, ".", 2)
 	if len(pair) != 2 {
 		return config, factory, fmt.Errorf("Not a fully qualified bucket name (e.g. 'bucket.host.domain'): %q", bucketURL.Host)

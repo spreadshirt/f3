@@ -3,7 +3,7 @@
 BIN		:=ftp2s3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
-SOURCES	:=$(wildcard ftplib/*.go)
+SOURCES	:=$(wildcard server/*.go)
 GO_PATH	:=$(shell pwd)/.go
 
 all: $(BIN)
@@ -24,20 +24,22 @@ endif
 docker: $(BIN)
 	docker build -t $(BIN) .
 
-test:
-	GOPATH=$(GO_PATH) go test -v ./ftplib/...
+test: $(GO_PATH)
+	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(BIN)/server
 
 fmt:
-	gofmt -w . ./ftplib
+	@gofmt -w $(BIN).go server
+	@goimports -w $(BIN).go server
 
 check: vet lint
 
 vet:
-	go vet . ./ftplib
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)/server
 
 lint:
-	golint .
-	golint ./ftplib
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)/server
 
 clean:
 	rm -f $(BIN)

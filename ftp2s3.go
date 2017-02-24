@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"git.spreadomat.net/sprd/ftp2s3/ftplib"
-	ftp "github.com/goftp/server"
-	"gopkg.in/urfave/cli.v1"
+	"git.spreadomat.net/sprd/ftp2s3/server"
+	ftp "github.com/klingtnet/goftp"
+	"github.com/sirupsen/logrus"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // AppName is the name of the program.
@@ -30,72 +31,100 @@ func main() {
 			Usage: "Address of the FTP server interface, default: 127.0.0.1:21",
 		},
 		cli.StringFlag{
-			Name:  "ftp-root",
-			Usage: "Root path of the FTP server, default is the current working directory",
-		},
-		cli.StringFlag{
-			Name:  "ftp-features",
-			Value: "ls",
-			Usage: "FTP feature set, default is empty. Example: --ftp-features=\"get,put,ls\"",
+			Name:  "features",
+			Value: server.DefaultFeatureSet,
+			Usage: "Feature set, default is empty. Example: --features=\"get,put,ls\"",
 		},
 		cli.BoolFlag{
-			Name:  "ftp-no-overwrite",
+			Name:  "no-overwrite",
 			Usage: "Prevent files from being overwritten",
+		},
+		cli.StringFlag{
+			Name:  "s3-credentials",
+			Usage: "AccessKey:SecretKey",
+		},
+		cli.StringFlag{
+			Name:  "s3-bucket",
+			Usage: "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com",
+		},
+		cli.StringFlag{
+			Name:  "s3-region",
+			Value: server.DefaultRegion,
+			Usage: "Region where the s3 bucket is located in",
+		},
+		cli.BoolFlag{
+			Name:  "verbose",
+			Usage: "Print what is being done",
 		},
 	}
 	app.Action = run
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err == nil {
+		logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
+	}
 }
 
 func run(context *cli.Context) error {
 	if context.NArg() < 1 {
-		return fmt.Errorf("not enough arguments, path to credentials file is missing")
+		return fmt.Errorf("not enough arguments, path to FTP credentials file is missing")
 	}
 
-	creds, err := ftplib.AuthenticatorFromFile(context.Args().First())
+	if context.Bool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	credentialsFilename := context.Args().First()
+	logrus.Debugf("Trying to read credentials file: %q", credentialsFilename)
+	creds, err := server.AuthenticatorFromFile(credentialsFilename)
 	if err != nil {
 		return err
 	}
 
-	ftpRoot := context.String("ftp-root")
-	// set FTP root to the current working directory if unset
-	if ftpRoot == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		ftpRoot = wd
-	}
-
-	ftpAddr := context.String("ftp-addr")
-	if ftpAddr == "" {
-		return fmt.Errorf("FTP address is empty")
-	}
-	parts := strings.SplitN(ftpAddr, ":", 2)
-	ftpHost := "127.0.0.1"
-	ftpPort := uint64(21)
-	if len(parts) == 1 {
-		ftpHost = parts[0]
-	} else if len(parts) > 1 {
-		ftpHost = parts[0]
-		ftpPort, err = strconv.ParseUint(parts[1], 10, 16)
-		if err != nil {
-			return err
-		}
-	}
-
-	factory, err := ftplib.NewDriverFactory(ftpRoot, context.String("ftp-features"), context.Bool("ftp-no-overwrite"))
+	ftpHost, ftpPort, err := splitFtpAddr(context.String("ftp-addr"))
 	if err != nil {
 		return err
 	}
-	opts := ftp.ServerOpts{
+
+	factory, err := server.NewDriverFactory(&server.FactoryConfig{
+		FtpFeatures:    context.String("features"),
+		FtpNoOverwrite: context.Bool("no-overwrite"),
+		S3Credentials:  context.String("s3-credentials"),
+		S3BucketURL:    context.String("s3-bucket"),
+		S3Region:       context.String("s3-region"),
+	})
+	if err != nil {
+		return err
+	}
+
+	ftpServer := ftp.NewServer(&ftp.ServerOpts{
 		Factory:        factory,
 		Auth:           creds,
 		Name:           AppName,
 		Hostname:       ftpHost,
-		Port:           int(ftpPort),
+		Port:           ftpPort,
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
-	}
-	ftpServer := ftp.NewServer(&opts)
+		Logger:         &server.FTPLogger{},
+	})
+	logrus.Infof("FTP server starts listening on \"%s:%d\"", ftpHost, ftpPort)
 	return ftpServer.ListenAndServe()
+}
+
+func splitFtpAddr(addr string) (string, int, error) {
+	addr = strings.TrimSpace(addr)
+	if addr == "" {
+		return "", -1, fmt.Errorf("Empty FTP address")
+	}
+	parts := strings.SplitN(addr, ":", 2)
+	host := parts[0]
+	port := uint64(21)
+	if len(parts) < 2 { // no port given
+		return host, int(port), nil
+	}
+
+	port, err := strconv.ParseUint(parts[1], 10, 16)
+	if err != nil {
+		return host, -1, fmt.Errorf("Invalid FTP port %q: %s", parts[1], err)
+	}
+
+	return host, int(port), err
 }

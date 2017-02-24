@@ -149,13 +149,14 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 		return err
 	}
 
+	// TODO: Prefix and delimiter
 	resp, err := d.s3.ListObjects(&s3.ListObjectsInput{
 		Bucket: aws.String(d.bucketName),
 	})
 	if err != nil {
 		err := intoAwsError(err)
 		fqdn := d.fqdn(key)
-		logrus.Errorf("Could not list %q.\nCode: \n", fqdn, err.Code())
+		logrus.Errorf("Could not list %q.\nCode: %s\n", fqdn, err.Code())
 		return err
 	}
 

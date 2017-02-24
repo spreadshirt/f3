@@ -16,6 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// S3ObjectInfo metadata about an s3 object.
 type S3ObjectInfo struct {
 	name     string
 	size     int64
@@ -28,26 +29,37 @@ func notEnabled(op string) error {
 	return fmt.Errorf("%q is not enabled", op)
 }
 
+// Name returns an s3 objects fully qualified identifier, e.g. `https://my-bucket.s3.amazonaws.com/some/prefix/objectKey`.
 func (s S3ObjectInfo) Name() string {
 	return s.name
 }
+
+// Size returns the objects size in bytes.
 func (s S3ObjectInfo) Size() int64 {
 	return s.size
 }
+
+// Mode returns `o644` for all objects because there is no file mode equivalent for s3 objects.
 func (s S3ObjectInfo) Mode() os.FileMode {
 	return os.FileMode(0644)
 }
+
+// IsDir is solely used for compatibility with FTP, don't rely on its return value.
 func (s S3ObjectInfo) IsDir() bool {
 	return s.isPrefix
 }
+
+// ModTime returns the object's date of last modification.
 func (s S3ObjectInfo) ModTime() time.Time {
 	return s.modTime
 }
+
+// Sys always returns `nil`.
 func (s S3ObjectInfo) Sys() interface{} {
 	return nil
 }
 
-// Owner returns the file owner (atm "Unknown").
+// Owner returns the objects owner name if known, otherwise "Unknown" is returned.
 func (s S3ObjectInfo) Owner() string {
 	if s.owner == "" {
 		return "Unknown"
@@ -55,7 +67,7 @@ func (s S3ObjectInfo) Owner() string {
 	return s.owner
 }
 
-// Group returns the file's group (atm "Unknown").
+// Group returns always "Unknown" because there is no corresponding attribute for an s3 object.
 func (s S3ObjectInfo) Group() string {
 	return "Unknown"
 }
@@ -87,10 +99,12 @@ func (d S3Driver) bucketCheck() error {
 	return nil
 }
 
+// Init initializes the FTP connection.
 func (d S3Driver) Init(conn *ftp.Conn) {
 	conn.Serve()
 }
 
+// Stat returns information about the object with key `key`.
 func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 	if err := d.bucketCheck(); err != nil {
 		return S3ObjectInfo{}, err
@@ -134,12 +148,14 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 	}, nil
 }
 
+// ChangeDir will always return an error because there is no such operation for a cloud object storage.
 func (d S3Driver) ChangeDir(key string) error {
 	// There is no s3 equivalent
 	logrus.Warn("ChangeDir (CD) is not supported.")
 	return notEnabled("CD")
 }
 
+// ListDir call the callback function with object metadata for each object located under prefix `key`.
 func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 	if d.featureFlags&featureList == 0 {
 		return notEnabled("LS")
@@ -176,12 +192,14 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 	return nil
 }
 
+// DeleteDir will always return an error because there is no such operation for a cloud object storage.
 func (d S3Driver) DeleteDir(key string) error {
 	// NOTE: Bucket removal will not be implemented
 	logrus.Warn("RemoveDir (RMDIR) is not supported.")
 	return notEnabled("RMDIR")
 }
 
+// DeleteFile will delete the object with key `key`.
 func (d S3Driver) DeleteFile(key string) error {
 	if d.featureFlags&featureRemove == 0 {
 		logrus.Warn("Remove (RM) is not enabled.")
@@ -200,24 +218,28 @@ func (d S3Driver) DeleteFile(key string) error {
 	return nil
 }
 
+// Rename will always return an error because there is no such operation for a cloud object storage.
 func (d S3Driver) Rename(oldKey string, newKey string) error {
+	// TODO: there is no direct method for s3, must be copied and removed
 	logrus.Warn("Rename (MV) is not supported.")
 	return notEnabled("MV")
 }
 
+// MakeDir will always return an error because there is no such operation for a cloud object storage.
 func (d S3Driver) MakeDir(key string) error {
 	// There is no s3 equivalent
 	logrus.Warn("MakeDir (MkDir) is not supported.")
 	return notEnabled("MKDIR")
 }
 
+// GetFile returns the object with key `key`.
 func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error) {
 	if d.featureFlags&featureGet == 0 {
 		return -1, nil, notEnabled("GET")
 	}
 
 	if d.noOverwrite && d.objectExists(key) {
-		return -1, nil, fmt.Errorf("Object alread exists and overwrite is not allowed.")
+		return -1, nil, fmt.Errorf("object alread exists and overwrite is not allowed")
 	}
 
 	resp, err := d.s3.GetObject(&s3.GetObjectInput{
@@ -238,17 +260,19 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	return *resp.ContentLength, resp.Body, nil
 }
 
+// PutFile stores the object with key `key`.
+// The method returns an error with no-overwrite was set and the object already exists or appendMode was specified.
 func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, error) {
 	if d.featureFlags&featurePut == 0 {
 		return -1, notEnabled("PUT")
 	}
 
 	if appendMode {
-		return -1, fmt.Errorf("Can not append to object %q because the backend does not support appending.", d.fqdn(key))
+		return -1, fmt.Errorf("can not append to object %q because the backend does not support appending", d.fqdn(key))
 	}
 
 	if d.noOverwrite && d.objectExists(key) {
-		return -1, fmt.Errorf("Object %q already exists and overwriting is forbidden.", d.fqdn(key))
+		return -1, fmt.Errorf("object %q already exists and overwriting is forbidden", d.fqdn(key))
 	}
 
 	buffer, err := ioutil.ReadAll(data)
@@ -267,12 +291,14 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	return 0, nil
 }
 
+// fqdn returns the fully qualified name for a object with key `key`.
 func (d S3Driver) fqdn(key string) string {
 	u := d.bucketURL
 	u.Path = key
 	return u.String()
 }
 
+// objectExists returns true if the object exists.
 func (d S3Driver) objectExists(key string) bool {
 	_, err := d.s3.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(d.bucketName),

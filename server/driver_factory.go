@@ -14,8 +14,10 @@ import (
 )
 
 const (
+	// DefaultFeatureSet is the driver default (set of) features
 	DefaultFeatureSet = "ls"
-	DefaultRegion     = "custom"
+	// DefaultRegion is the default bucket region
+	DefaultRegion = "custom"
 )
 
 // DriverFactory builds FTP drivers.

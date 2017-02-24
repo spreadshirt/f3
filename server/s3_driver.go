@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -77,7 +78,7 @@ func (s S3ObjectInfo) Group() string {
 type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
-	s3           *s3.S3
+	s3           s3iface.S3API
 	bucketName   string
 	bucketURL    *url.URL
 }

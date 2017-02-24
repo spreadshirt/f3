@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -26,7 +27,7 @@ const (
 type DriverFactory struct {
 	featureFlags int
 	noOverwrite  bool
-	s3           *s3.S3
+	s3           s3iface.S3API
 	bucketName   string
 	bucketURL    *url.URL
 }

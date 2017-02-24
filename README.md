@@ -10,6 +10,12 @@ make install
 
 If you need help, run: `ftp2s3 -h`.
 
+## Example
+
+```sh
+$ ftp2s3 --features="ls,put,rm,get" --no-overwrite --ftp-addr 127.0.0.1:2121 --s3-region eu-central-1 --s3-credentials 'accesskey:secret' --s3-bucket 'https://<f3.somewhere.com>' ./ftp-credentials.txt
+```
+
 ## Development
 
 Make sure that a go 1.7+ distribution is available on your system.

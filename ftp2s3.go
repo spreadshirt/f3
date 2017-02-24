@@ -58,7 +58,8 @@ func main() {
 		},
 	}
 	app.Action = run
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
 }
 
 func run(context *cli.Context) error {

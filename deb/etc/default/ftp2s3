@@ -1,3 +1,4 @@
+FTP_ADDR="0.0.0.0:21"
 S3_KEY=""
 S3_SECRET=""
 S3_BUCKET=""

@@ -111,6 +111,7 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 		return S3ObjectInfo{}, err
 	}
 
+	fqdn := d.fqdn(key)
 	resp, err := d.s3.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
@@ -128,7 +129,6 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 				modTime:  time.Now(),
 			}, nil
 		}
-		fqdn := d.fqdn(key)
 		logrus.WithFields(logrus.Fields{"time": time.Now(), "object": fqdn}).Errorf("Stat for %q failed.\nCode: %s", fqdn, err.Code())
 		return S3ObjectInfo{}, err
 	}
@@ -142,7 +142,7 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 		modTime = *resp.LastModified
 	}
 
-	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": STAT}).Infof("File information for %q", fqdn)
+	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": "STAT"}).Infof("File information for %q", fqdn)
 	return S3ObjectInfo{
 		name:     key,
 		isPrefix: true,

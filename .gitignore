@@ -1,7 +1,7 @@
 *.swp
 /.idea/
 /.go/
-ftp2s3
+f3
 /deb/usr/sbin
 !/deb/etc/default/*
 /ftp2s3*.deb

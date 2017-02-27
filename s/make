@@ -7,7 +7,8 @@ make $@
 result=$?
 popd &>/dev/null
 
-[[ $result -ne 0 ]]\
-    && exit $result
+if [ $result != 0 ]; then
+	exit $result
+fi
 
 # vim: set syntax=sh:

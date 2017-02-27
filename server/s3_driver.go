@@ -129,7 +129,7 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 			}, nil
 		}
 		fqdn := d.fqdn(key)
-		logrus.WithFields(logrus.Fields{"object": fqdn}).Errorf("Stat for %q failed.\nCode: %s", fqdn, err.Code())
+		logrus.WithFields(logrus.Fields{"time": time.Now(), "object": fqdn}).Errorf("Stat for %q failed.\nCode: %s", fqdn, err.Code())
 		return S3ObjectInfo{}, err
 	}
 
@@ -142,7 +142,7 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 		modTime = *resp.LastModified
 	}
 
-	logrus.WithFields(logrus.Fields{"key": fqdn, "action": STAT}).Infof("File information for %q", fqdn)
+	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": STAT}).Infof("File information for %q", fqdn)
 	return S3ObjectInfo{
 		name:     key,
 		isPrefix: true,
@@ -192,7 +192,7 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 			modTime: *object.LastModified,
 		})
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"error": err}).Errorf("Could not list %q", d.fqdn(key))
+			logrus.WithFields(logrus.Fields{"time": time.Now(), "error": err}).Errorf("Could not list %q", d.fqdn(key))
 		}
 	}
 	return nil
@@ -219,11 +219,11 @@ func (d S3Driver) DeleteFile(key string) error {
 	})
 	if err != nil {
 		err := intoAwsError(err)
-		logrus.WithFields(logrus.Fields{"code": err.Code(), "error": err.Message()}).Error("Failed to delete object %q.", fqdn)
+		logrus.WithFields(logrus.Fields{"time": time.Now(), "code": err.Code(), "error": err.Message()}).Error("Failed to delete object %q.", fqdn)
 		return err
 	}
 
-	logrus.WithFields(logrus.Fields{"key": fqdn, "action": "DELETE"}).Infof("Deleted %q", fqdn)
+	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": "DELETE"}).Infof("Deleted %q", fqdn)
 	return nil
 }
 
@@ -255,11 +255,11 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	if err != nil {
 		err := intoAwsError(err)
 		if err.Code() == "NotFound" {
-			logrus.WithFields(logrus.Fields{"Object": fqdn}).Errorf("Failed to get object: %q", fqdn)
+			logrus.WithFields(logrus.Fields{"time": time.Now(), "Object": fqdn}).Errorf("Failed to get object: %q", fqdn)
 		}
 		return 0, nil, err
 	}
-	logrus.WithFields(logrus.Fields{"operation": "GET", "object": fqdn}).Infof("Serving object: %s", fqdn)
+	logrus.WithFields(logrus.Fields{"time": time.Now(), "operation": "GET", "object": fqdn}).Infof("Serving object: %s", fqdn)
 
 	return *resp.ContentLength, resp.Body, nil
 }
@@ -287,7 +287,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	buffer, err := ioutil.ReadAll(data)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to put object %q because reading from source failed.", fqdn)
-		logrus.WithFields(logrus.Fields{"object": fqdn, "action": "PUT", "error": err}).Errorf(msg)
+		logrus.WithFields(logrus.Fields{"time": time.Now(), "object": fqdn, "action": "PUT", "error": err}).Errorf(msg)
 		return -1, err
 	}
 
@@ -296,7 +296,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(buffer),
 	})
-	logrus.WithFields(logrus.Fields{"key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
+	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
 
 	return 0, err
 }

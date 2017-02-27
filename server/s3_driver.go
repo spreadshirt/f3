@@ -256,7 +256,7 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	}
 
 	fqdn := d.fqdn(key)
-	logrus.WithFields(logrus.Fields{"Operation": "GET", "Object": fqdn}).Info("Serving object", fqdn)
+	logrus.WithFields(logrus.Fields{"Operation": "GET", "Object": fqdn}).Infof("Serving object: %s", fqdn)
 	return *resp.ContentLength, resp.Body, nil
 }
 

@@ -1,22 +1,22 @@
 [Unit]
-Description=ftp2s3
-Documentation=https://git.spreadomat.net/sprd/ftp2s3
+Description=f3
+Documentation=https://git.spreadomat.net/sprd/f3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
 User=nobody
 Group=nobody
-EnvironmentFile=/etc/default/ftp2s3
+EnvironmentFile=/etc/default/f3
 # requires libcap-ng-utils
-ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/ftp2s3
-ExecStart=/usr/sbin/ftp2s3\
+ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/f3
+ExecStart=/usr/sbin/f3\
     --features='put'\
     --no-overwrite\
     --s3-credentials="${S3_KEY}:${S3_SECRET}"\
     --s3-bucket="${S3_BUCKET}"\
     --s3-region="${S3_REGION}"\
-    /etc/ftp2s3/credentials.txt
-PIDFile=/var/run/ftp2s3/ftp2s3.pid
+    /etc/f3/credentials.txt
+PIDFile=/var/run/f3/f3.pid
 Restart=on-failure
 ; restrictions
 PrivateTmp=true

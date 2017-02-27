@@ -1,6 +1,6 @@
 .PHONY: clean docker test
 
-BIN		:=ftp2s3
+BIN		:=f3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
 SOURCES	:=$(wildcard server/*.go)
@@ -39,7 +39,7 @@ deb: $(BIN) test
 		--architecture amd64\
 		--prefix /\
 		--description 'An FTP to AWS s3 bridge'\
-		--url 'github.com/spreadshirt/ftp2s3'\
+		--url 'github.com/spreadshirt/f3'\
 		--chdir deb
 
 fmt:

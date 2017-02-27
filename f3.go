@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"git.spreadomat.net/sprd/ftp2s3/server"
+	"git.spreadomat.net/sprd/f3/server"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 // AppName is the name of the program.
-const AppName string = "ftp2s3"
+const AppName string = "f3"
 
 // Version is the current version of ftps3.
 var Version string

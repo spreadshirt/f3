@@ -5,6 +5,7 @@ VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
 SOURCES	:=$(wildcard server/*.go)
 GO_PATH	:=$(shell pwd)/.go
+DEB_NAME:=$(BIN)_$(VERSION)_amd64.deb
 
 all: $(BIN)
 
@@ -26,6 +27,20 @@ docker: $(BIN)
 
 test: $(GO_PATH)
 	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(BIN)/server
+
+deb: $(BIN) test
+	mkdir -p deb/usr/sbin
+	cp $(BIN) deb/usr/sbin
+	fpm --force\
+		--input-type dir\
+		--output-type deb\
+		--version $(VERSION)\
+		--name $(BIN)\
+		--architecture amd64\
+		--prefix /\
+		--description 'An FTP to AWS s3 bridge'\
+		--url 'github.com/spreadshirt/ftp2s3'\
+		--chdir deb
 
 fmt:
 	@gofmt -w $(BIN).go server

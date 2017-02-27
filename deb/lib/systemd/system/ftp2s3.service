@@ -1,0 +1,32 @@
+[Unit]
+Description=ftp2s3
+Documentation=https://git.spreadomat.net/sprd/ftp2s3
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+User=nobody
+Group=nobody
+EnvironmentFile=/etc/default/ftp2s3
+# requires libcap-ng-utils
+ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/ftp2s3
+ExecStart=/usr/sbin/ftp2s3\
+    --features='put'\
+    --no-overwrite\
+    --s3-credentials="${S3_KEY}:${S3_SECRET}"\
+    --s3-bucket="${S3_BUCKET}"\
+    --s3-region="${S3_REGION}"\
+    /etc/ftp2s3/credentials.txt
+PIDFile=/var/run/ftp2s3/ftp2s3.pid
+Restart=on-failure
+; restrictions
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystemFull=true
+ReadOnlyPaths=/etc/cephy
+
+[Install]
+WantedBy=multi-user.target
+
+; See: man systemd.exec or systemd.directives
+
+; vim: set syntax=systemd:

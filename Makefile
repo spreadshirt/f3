@@ -1,41 +1,41 @@
 .PHONY: clean docker test
 
-BIN		:=f3
+APP		:=f3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
 SOURCES	:=$(wildcard server/*.go)
 GO_PATH	:=$(shell pwd)/.go
-DEB_NAME:=$(BIN)_$(VERSION)_amd64.deb
+DEB_NAME:=$(APP)_$(VERSION)_amd64.deb
 
-all: $(BIN)
+all: $(APP)
 
 $(GO_PATH):
 	s/bootstrap
 
-$(BIN): $(BIN).go $(SOURCES) $(GO_PATH)
-	GOPATH=$(GO_PATH) go build $(GO_FLAGS) github.com/spreadshirt/$(BIN)
+$(APP): $(APP).go $(SOURCES) $(GO_PATH)
+	GOPATH=$(GO_PATH) go build $(GO_FLAGS) github.com/spreadshirt/$(APP)
 
-install: test $(BIN)
+install: test $(APP)
 ifeq ($$EUID, 0)
-	@install --mode=0755 --verbose $(BIN) /usr/local/bin
+	@install --mode=0755 --verbose $(APP) /usr/local/bin
 else
-	@install --mode=0755 --verbose $(BIN) $$HOME/.local/bin
+	@install --mode=0755 --verbose $(APP) $$HOME/.local/bin
 endif
 
-docker: $(BIN)
-	docker build -t $(BIN) .
+docker: $(APP)
+	docker build -t $(APP) .
 
 test: $(GO_PATH)
-	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(BIN)/server
+	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(APP)/server
 
-deb: $(BIN) test
+deb: $(APP) test
 	mkdir -p deb/usr/sbin
-	cp $(BIN) deb/usr/sbin
+	cp $(APP) deb/usr/sbin
 	fpm --force\
 		--input-type dir\
 		--output-type deb\
 		--version $(VERSION)\
-		--name $(BIN)\
+		--name $(APP)\
 		--architecture amd64\
 		--prefix /\
 		--description 'An FTP to AWS s3 bridge'\
@@ -43,21 +43,21 @@ deb: $(BIN) test
 		--chdir deb
 
 fmt:
-	@gofmt -w $(BIN).go server
-	@goimports -w $(BIN).go server
+	@gofmt -w $(APP).go server
+	@goimports -w $(APP).go server
 
 check: vet lint
 
 vet:
-	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)
-	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(BIN)/server
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(APP)
+	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(APP)/server
 
 lint:
-	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)
-	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(BIN)/server
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(APP)
+	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(APP)/server
 
 clean:
-	rm -f $(BIN)
+	rm -f $(APP)
 
 clean-all: clean
 	rm -rf .go vendor

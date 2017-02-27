@@ -8,31 +8,25 @@ import (
 func TestParseFeatureSet(t *testing.T) {
 	testDataSet := []struct {
 		id           string
-		featureSet   string
+		featureSet   []string
 		featureFlags int
 		shouldFail   bool
 	}{
 		{
 			"empty",
-			"",
+			[]string{},
 			0,
 			true,
 		},
 		{
 			"full-set",
-			"cd,ls,rmdir,rm,mv,mkdir,get,put",
+			[]string{"cd", "ls", "rmdir", "rm", "mv", "mkdir", "get", "put"},
 			featureChangeDir | featureList | featureRemoveDir | featureRemove | featureMove | featureMakeDir | featureGet | featurePut,
 			false,
 		},
 		{
 			"invalid-features",
-			"cd,invalid,put",
-			0,
-			true,
-		},
-		{
-			"bad-syntax",
-			"cd,get,rmdir,",
+			[]string{"cd", "invalid", "put"},
 			0,
 			true,
 		},
@@ -82,7 +76,7 @@ func TestDriverFactory(t *testing.T) {
 		},
 		{
 			FactoryConfig{
-				"ls,rm,mkdir,get",
+				[]string{"ls", "rm", "mkdir", "get"},
 				false,
 				"access:secret",
 				"https://another-bucket.somewhere.in.some.datacenter.domain.com",

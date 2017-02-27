@@ -179,10 +179,14 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 
 	for _, object := range resp.Contents {
 		key := *object.Key
+		owner := ""
+		if object.Owner != nil {
+			owner = object.Owner.String()
+		}
 		err = cb(S3ObjectInfo{
 			name:    key,
 			size:    *object.Size,
-			owner:   object.Owner.String(),
+			owner:   owner,
 			modTime: *object.LastModified,
 		})
 		if err != nil {

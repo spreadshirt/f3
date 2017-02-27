@@ -242,10 +242,6 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 		return -1, nil, notEnabled("GET")
 	}
 
-	if d.noOverwrite && d.objectExists(key) {
-		return -1, nil, fmt.Errorf("object alread exists and overwrite is not allowed")
-	}
-
 	resp, err := d.s3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),

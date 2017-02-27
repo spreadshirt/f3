@@ -4,11 +4,9 @@ Documentation=https://git.spreadomat.net/sprd/ftp2s3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
-User=nobody
-Group=nobody
+User=root
+Group=root
 EnvironmentFile=/etc/default/ftp2s3
-# requires libcap-ng-utils
-ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/ftp2s3
 ExecStart=/usr/sbin/ftp2s3\
     --features='put'\
     --ftp-addr="${FTP_ADDR}"\

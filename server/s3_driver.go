@@ -315,7 +315,7 @@ func (d S3Driver) objectExists(key string) bool {
 		if err.Code() == "NotFound" {
 			return false
 		}
-		logrus.Error("Failed to check object %q", d.fqdn(key))
+		logrus.Debugf("Failed to check object %q", d.fqdn(key))
 		return false
 	}
 	return true

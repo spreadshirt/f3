@@ -177,7 +177,6 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 		return err
 	}
 
-	logrus.Info("Content length:", len(resp.Contents))
 	for _, object := range resp.Contents {
 		key := *object.Key
 		err = cb(S3ObjectInfo{

@@ -141,6 +141,8 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 	if resp.LastModified != nil {
 		modTime = *resp.LastModified
 	}
+
+	logrus.WithFields(logrus.Fields{"key": fqdn, "action": STAT}).Infof("File information for %q", fqdn)
 	return S3ObjectInfo{
 		name:     key,
 		isPrefix: true,
@@ -210,6 +212,7 @@ func (d S3Driver) DeleteFile(key string) error {
 		return notEnabled("RM")
 	}
 
+	fqdn := d.fqdn(key)
 	_, err := d.s3.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
@@ -219,6 +222,8 @@ func (d S3Driver) DeleteFile(key string) error {
 		logrus.WithFields(logrus.Fields{"Code": err.Code(), "Error": err.Message()}).Error("Failed to delete object %q.", d.fqdn(key))
 		return err
 	}
+
+	logrus.WithFields(logrus.Fields{"key": fqdn, "action": "DELETE"}).Infof("Deleted %q", fqdn)
 	return nil
 }
 
@@ -242,6 +247,7 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 		return -1, nil, notEnabled("GET")
 	}
 
+	fqdn := d.fqdn(key)
 	resp, err := d.s3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
@@ -249,14 +255,12 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	if err != nil {
 		err := intoAwsError(err)
 		if err.Code() == "NotFound" {
-			fqdn := d.fqdn(key)
 			logrus.WithFields(logrus.Fields{"Object": fqdn}).Errorf("Failed to get object: %q", fqdn)
 		}
 		return 0, nil, err
 	}
+	logrus.WithFields(logrus.Fields{"operation": "GET", "object": fqdn}).Infof("Serving object: %s", fqdn)
 
-	fqdn := d.fqdn(key)
-	logrus.WithFields(logrus.Fields{"Operation": "GET", "Object": fqdn}).Infof("Serving object: %s", fqdn)
 	return *resp.ContentLength, resp.Body, nil
 }
 
@@ -267,6 +271,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		return -1, notEnabled("PUT")
 	}
 
+	fqdn := d.fqdn(key)
 	if appendMode {
 		msg := fmt.Sprintf("can not append to object %q because the backend does not support appending", d.fqdn(key))
 		logrus.Error(msg)
@@ -281,7 +286,6 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 
 	buffer, err := ioutil.ReadAll(data)
 	if err != nil {
-		fqdn := d.fqdn(key)
 		msg := fmt.Sprintf("Failed to put object %q because reading from source failed.", fqdn)
 		logrus.WithFields(logrus.Fields{"Object": fqdn, "Operation": "PUT", "Error": err}).Errorf(msg)
 		return -1, err
@@ -292,6 +296,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(buffer),
 	})
+	logrus.WithFields(logrus.Fields{"key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
 
 	return 0, err
 }

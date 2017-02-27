@@ -9,7 +9,7 @@ import (
 	"git.spreadomat.net/sprd/f3/server"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/spf13/cobra"
 )
 
 // AppName is the name of the program.
@@ -18,79 +18,86 @@ const AppName string = "f3"
 // Version is the current version of ftps3.
 var Version string
 
+type cliFlags struct {
+	ftpAddr       string
+	features      string
+	noOverwrite   bool
+	s3Credentials string
+	s3Bucket      string
+	s3Region      string
+	verbose       bool
+}
+
 func main() {
-	app := cli.NewApp()
-	app.Name = AppName
-	app.Usage = "an FTP to s3/ceph bridge"
-	app.Version = Version
-	app.Description = "A tool that acts as a bridge between FTP and a s3/ceph bucket"
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "ftp-addr",
-			Value: "127.0.0.1:21",
-			Usage: "Address of the FTP server interface, default: 127.0.0.1:21",
-		},
-		cli.StringFlag{
-			Name:  "features",
-			Value: server.DefaultFeatureSet,
-			Usage: "Feature set, default is empty. Example: --features=\"get,put,ls\"",
-		},
-		cli.BoolFlag{
-			Name:  "no-overwrite",
-			Usage: "Prevent files from being overwritten",
-		},
-		cli.StringFlag{
-			Name:  "s3-credentials",
-			Usage: "AccessKey:SecretKey",
-		},
-		cli.StringFlag{
-			Name:  "s3-bucket",
-			Usage: "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com",
-		},
-		cli.StringFlag{
-			Name:  "s3-region",
-			Value: server.DefaultRegion,
-			Usage: "Region where the s3 bucket is located in",
-		},
-		cli.BoolFlag{
-			Name:  "verbose",
-			Usage: "Print what is being done",
+	flags := cliFlags{}
+
+	cmd := &cobra.Command{
+		Use:   fmt.Sprintf("%s /path/to/ftp-credentials.txt", os.Args[0]),
+		Short: "f3 acts like a bridge between FTP and an s3 bucket",
+		Long: `f3 is a bridge between FTP and an s3 bucket.
+It maps FTP commands to s3 equivalents and stores uploaded files as objects in an s3 bucket.
+The feature set of the FTP server can be set very fine grained, e.g. you can only allow 'ls' and 'get' operations.
+Additionally, you can prevent objects from getting overwritten.
+
+See https://git.spreadomat.net/sprd/f3 for details.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) < 2 {
+				cmd.Usage()
+				return
+			}
+			err := run(args[1], flags)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
+			}
 		},
 	}
-	app.Action = run
-	err := app.Run(os.Args)
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Prints the application version",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("%s %s\n", cmd.Use, Version)
+		},
+	}
+
+	cmd.AddCommand(versionCmd)
+
+	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
+	// TODO: use StringArrayVar
+	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q", server.DefaultFeatureSet))
+	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
+	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
+	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")
+	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, fmt.Sprintf("Region where the s3 bucket is located in. Default: %q", server.DefaultRegion))
+	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "Print what is being done")
+
+	err := cmd.Execute()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
 	}
 }
 
-func run(context *cli.Context) error {
-	if context.NArg() < 1 {
-		return fmt.Errorf("not enough arguments, path to FTP credentials file is missing")
-	}
-
-	if context.Bool("verbose") {
+func run(credentialsFilename string, flags cliFlags) error {
+	if flags.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	credentialsFilename := context.Args().First()
 	logrus.Debugf("Trying to read credentials file: %q", credentialsFilename)
 	creds, err := server.AuthenticatorFromFile(credentialsFilename)
 	if err != nil {
 		return err
 	}
 
-	ftpHost, ftpPort, err := splitFtpAddr(context.String("ftp-addr"))
+	ftpHost, ftpPort, err := splitFtpAddr(flags.ftpAddr)
 	if err != nil {
 		return err
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpFeatures:    context.String("features"),
-		FtpNoOverwrite: context.Bool("no-overwrite"),
-		S3Credentials:  context.String("s3-credentials"),
-		S3BucketURL:    context.String("s3-bucket"),
-		S3Region:       context.String("s3-region"),
+		FtpFeatures:    flags.features,
+		FtpNoOverwrite: flags.noOverwrite,
+		S3Credentials:  flags.s3Credentials,
+		S3BucketURL:    flags.s3Bucket,
+		S3Region:       flags.s3Region,
 	})
 	if err != nil {
 		return err

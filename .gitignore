@@ -2,3 +2,6 @@
 /.idea/
 /.go/
 ftp2s3
+/deb/usr/sbin
+!/deb/etc/default/*
+/ftp2s3*.deb

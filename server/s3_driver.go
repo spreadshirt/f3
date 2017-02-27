@@ -287,13 +287,13 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		return -1, err
 	}
 
-	d.s3.PutObject(&s3.PutObjectInput{
+	_, err = d.s3.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(buffer),
 	})
 
-	return 0, nil
+	return 0, err
 }
 
 // fqdn returns the fully qualified name for a object with key `key`.

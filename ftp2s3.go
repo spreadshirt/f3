@@ -59,7 +59,7 @@ func main() {
 	}
 	app.Action = run
 	err := app.Run(os.Args)
-	if err == nil {
+	if err != nil {
 		logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
 	}
 }

@@ -188,7 +188,7 @@ func TestS3Driver(t *testing.T) {
 			return fmt.Errorf("Unexpected object: %s", info.Name())
 		}
 		if info.Size() != contentLen {
-			return fmt.Errorf("Object %q has unexpected size: %d", info.Size())
+			return fmt.Errorf("Object %q has unexpected size: %d", key, info.Size())
 		}
 		return nil
 	})

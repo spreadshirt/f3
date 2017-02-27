@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -77,7 +78,7 @@ func (s S3ObjectInfo) Group() string {
 type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
-	s3           *s3.S3
+	s3           s3iface.S3API
 	bucketName   string
 	bucketURL    *url.URL
 }
@@ -176,13 +177,16 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 		return err
 	}
 
-	logrus.Info("Content length:", len(resp.Contents))
 	for _, object := range resp.Contents {
 		key := *object.Key
+		owner := ""
+		if object.Owner != nil {
+			owner = object.Owner.String()
+		}
 		err = cb(S3ObjectInfo{
 			name:    key,
 			size:    *object.Size,
-			owner:   object.Owner.String(),
+			owner:   owner,
 			modTime: *object.LastModified,
 		})
 		if err != nil {
@@ -238,10 +242,6 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 		return -1, nil, notEnabled("GET")
 	}
 
-	if d.noOverwrite && d.objectExists(key) {
-		return -1, nil, fmt.Errorf("object alread exists and overwrite is not allowed")
-	}
-
 	resp, err := d.s3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
@@ -256,7 +256,7 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	}
 
 	fqdn := d.fqdn(key)
-	logrus.WithFields(logrus.Fields{"Operation": "GET", "Object": fqdn}).Info("Serving object", fqdn)
+	logrus.WithFields(logrus.Fields{"Operation": "GET", "Object": fqdn}).Infof("Serving object: %s", fqdn)
 	return *resp.ContentLength, resp.Body, nil
 }
 
@@ -287,13 +287,13 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		return -1, err
 	}
 
-	d.s3.PutObject(&s3.PutObjectInput{
+	_, err = d.s3.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader(buffer),
 	})
 
-	return 0, nil
+	return 0, err
 }
 
 // fqdn returns the fully qualified name for a object with key `key`.
@@ -315,7 +315,7 @@ func (d S3Driver) objectExists(key string) bool {
 		if err.Code() == "NotFound" {
 			return false
 		}
-		logrus.Error("Failed to check object %q", d.fqdn(key))
+		logrus.Debugf("Failed to check object %q", d.fqdn(key))
 		return false
 	}
 	return true

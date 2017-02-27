@@ -41,25 +41,20 @@ Additionally, you can prevent objects from getting overwritten.
 
 See https://git.spreadomat.net/sprd/f3 for details.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) < 2 {
+			if len(args) < 1 {
 				cmd.Usage()
 				return
 			}
-			err := run(args[1], flags)
+			if args[0] == "version" {
+				fmt.Printf("%s %s\n", AppName, Version)
+				return
+			}
+			err := run(args[0], flags)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{"msg": err}).Fatal(err)
 			}
 		},
 	}
-	versionCmd := &cobra.Command{
-		Use:   "version",
-		Short: "Prints the application version",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("%s %s\n", cmd.Use, Version)
-		},
-	}
-
-	cmd.AddCommand(versionCmd)
 
 	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
 	cmd.PersistentFlags().StringArrayVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("A comma separated list of FTP features to enable. Default: --features=%q", server.DefaultFeatureSet))

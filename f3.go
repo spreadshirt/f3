@@ -56,12 +56,12 @@ See https://git.spreadomat.net/sprd/f3 for details.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
-	cmd.PersistentFlags().StringArrayVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("A comma separated list of FTP features to enable. Default: --features=%q", server.DefaultFeatureSet))
+	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface")
+	cmd.PersistentFlags().StringArrayVar(&flags.features, "features", server.DefaultFeatureSet, "A comma separated list of FTP features to enable.")
 	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
 	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
 	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")
-	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, fmt.Sprintf("Region where the s3 bucket is located in. Default: %q", server.DefaultRegion))
+	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, "Region where the s3 bucket is located in")
 	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "Print what is being done")
 
 	err := cmd.Execute()

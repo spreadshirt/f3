@@ -4,8 +4,7 @@ Documentation=https://git.spreadomat.net/sprd/f3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
-User=nobody
-Group=nobody
+DynamicUser=true
 EnvironmentFile=/etc/default/f3
 # requires libcap-ng-utils
 ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/f3
@@ -19,7 +18,6 @@ ExecStart=/usr/sbin/f3\
 PIDFile=/var/run/f3/f3.pid
 Restart=on-failure
 ; restrictions
-PrivateTmp=true
 PrivateDevices=true
 
 [Install]

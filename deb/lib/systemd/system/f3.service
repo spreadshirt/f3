@@ -12,6 +12,7 @@ EnvironmentFile=/etc/default/f3
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 ExecStart=/usr/sbin/f3\
+    --ftp-addr="${FTP_ADDR}"\
     --features='put'\
     --no-overwrite\
     --s3-credentials="${S3_KEY}:${S3_SECRET}"\

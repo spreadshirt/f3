@@ -53,6 +53,8 @@ func (c *CloudwatchSender) SendPut(size int64, timestamp time.Time) error {
 			},
 		},
 	})
+	err := intoAwsError(err)
+	logAwsError(err)
 	return err
 }
 
@@ -73,5 +75,7 @@ func (c *CloudwatchSender) SendGet(size int64, timestamp time.Time) error {
 			},
 		},
 	})
+	err := intoAwsError(err)
+	logAwsError(err)
 	return err
 }

@@ -21,8 +21,6 @@ Restart=on-failure
 ; restrictions
 PrivateTmp=true
 PrivateDevices=true
-ProtectSystemFull=true
-ReadOnlyPaths=/etc/cephy
 
 [Install]
 WantedBy=multi-user.target

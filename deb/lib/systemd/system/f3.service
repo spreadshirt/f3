@@ -4,8 +4,8 @@ Documentation=https://git.spreadomat.net/sprd/f3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
-User=nobody
-Group=nobody
+User=www-data
+Group=www-data
 ; systemd>=232: Remove `User` and `Group` directives and enable `DynamicUser`
 ; DynamicUser=true
 EnvironmentFile=/etc/default/f3

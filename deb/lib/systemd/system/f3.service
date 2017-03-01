@@ -15,7 +15,7 @@ ExecStart=/usr/sbin/f3\
     --s3-credentials="${S3_KEY}:${S3_SECRET}"\
     --s3-bucket="${S3_BUCKET}"\
     --s3-region="${S3_REGION}"\
-    /etc/f3/credentials.txt
+    /etc/f3/ftp-credentials.txt
 PIDFile=/var/run/f3/f3.pid
 Restart=on-failure
 ; restrictions

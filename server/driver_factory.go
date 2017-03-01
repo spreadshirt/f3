@@ -133,7 +133,7 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	// retrieve bucket name and endpoint from bucket FQDN
 	pair = strings.SplitN(bucketURL.Host, ".", 2)
 	if len(pair) != 2 {
-		return config, factory, fmt.Errorf("Not a fully qualified bucket name (e.g. 'bucket.host.domain'): %q", bucketURL.Host)
+		return config, factory, fmt.Errorf("Not a fully qualified bucket name (e.g. 'bucket.host.domain'): %q", bucketURL.String())
 	}
 	bucketName, endpoint := pair[0], fmt.Sprintf("%s://%s", bucketURL.Scheme, pair[1])
 	factory.bucketName = bucketName

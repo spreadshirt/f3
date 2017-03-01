@@ -1,7 +1,6 @@
 *.swp
 /.idea/
 /.go/
-f3
+/f3
 /deb/usr/sbin
-!/deb/etc/default/*
 /f3*.deb

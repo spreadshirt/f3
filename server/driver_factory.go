@@ -38,7 +38,13 @@ type DriverFactory struct {
 
 // NewDriver returns a new FTP driver.
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
-	return S3Driver{d.featureFlags, d.noOverwrite, d.s3, d.bucketName, d.bucketURL}, nil
+	return S3Driver{
+		featureFlags: d.featureFlags,
+		noOverwrite:  d.noOverwrite,
+		s3:           d.s3,
+		bucketName:   d.bucketName,
+		bucketURL:    d.bucketURL,
+	}, nil
 }
 
 // FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.

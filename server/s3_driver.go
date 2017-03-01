@@ -222,7 +222,7 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 
 	err = d.metrics.SendGet(size, timestamp)
 	if err != nil {
-		log.Errorf("Sending GET metrics failed: %s", err)
+		logrus.Errorf("Sending GET metrics failed: %s", err)
 	}
 
 	return size, resp.Body, nil
@@ -266,7 +266,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 
 	err = d.metrics.SendPut(size, timestamp)
 	if err != nil {
-		log.Errorf("Sending PUT metrics failed: %s", err)
+		logrus.Errorf("Sending PUT metrics failed: %s", err)
 	}
 
 	return size, err

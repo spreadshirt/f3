@@ -44,7 +44,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
 		s3:           d.s3,
-		metrics:      d.cloudwatch,
+		metrics:      d.metrics,
 		bucketName:   d.bucketName,
 		bucketURL:    d.bucketURL,
 	}, nil

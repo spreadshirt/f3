@@ -38,6 +38,10 @@ func intoAwsError(err error) awserr.Error {
 	return err.(awserr.Error)
 }
 
+func logAwsError(err awserr.Error) {
+	logrus.Errorf("AWS Error: Code=%q Message=%q", err.Code(), err.Message())
+}
+
 // bucketCheck checks if the bucket is accessible
 func (d S3Driver) bucketCheck() error {
 	_, err := d.s3.HeadBucket(&s3.HeadBucketInput{
@@ -45,7 +49,8 @@ func (d S3Driver) bucketCheck() error {
 	})
 	if err != nil {
 		err := intoAwsError(err)
-		logrus.Errorf("Bucket %q is not accessible.\nCode: %s", d.bucketURL, err.Code())
+		logAwsError(err)
+		logrus.Errorf("Bucket %q is not accessible.", d.bucketURL)
 		return err
 	}
 	return nil
@@ -126,7 +131,8 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 	if err != nil {
 		err := intoAwsError(err)
 		fqdn := d.fqdn(key)
-		logrus.Errorf("Could not list %q.\nCode: %s\n", fqdn, err.Code())
+		logAwsError(err)
+		logrus.Errorf("Could not list %q.", fqdn)
 		return err
 	}
 
@@ -170,6 +176,7 @@ func (d S3Driver) DeleteFile(key string) error {
 	})
 	if err != nil {
 		err := intoAwsError(err)
+		logAwsError(err)
 		logrus.WithFields(logrus.Fields{"time": time.Now(), "code": err.Code(), "error": err.Message()}).Error("Failed to delete object %q.", fqdn)
 		return err
 	}
@@ -230,6 +237,8 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 		},
 	})
 	if err != nil {
+		err = intoAwsError(err)
+		logAwsError(err)
 		return 0, nil, err
 	}
 
@@ -287,6 +296,8 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		},
 	})
 	if err != nil {
+		err = intoAwsError(err)
+		logAwsError(err)
 		return 0, nil, err
 	}
 

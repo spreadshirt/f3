@@ -6,7 +6,7 @@ Wants=network-online.target systemd-networkd-wait-online.service
 [Service]
 DynamicUser=true
 EnvironmentFile=/etc/default/f3
-# requires libcap-ng-utils
+; requires libcap-ng-utils
 ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/sbin/f3
 ExecStart=/usr/sbin/f3\
     --features='put'\

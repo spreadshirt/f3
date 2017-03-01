@@ -53,7 +53,9 @@ func (c *CloudwatchSender) SendPut(size int64, timestamp time.Time) error {
 			},
 		},
 	})
-	logAwsError(intoAwsError(err))
+	if err != nil {
+		logAwsError(intoAwsError(err))
+	}
 	return err
 }
 
@@ -74,6 +76,8 @@ func (c *CloudwatchSender) SendGet(size int64, timestamp time.Time) error {
 			},
 		},
 	})
-	logAwsError(intoAwsError(err))
+	if err != nil {
+		logAwsError(intoAwsError(err))
+	}
 	return err
 }

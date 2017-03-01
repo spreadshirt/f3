@@ -3,14 +3,11 @@ package server
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
@@ -35,7 +32,7 @@ type DriverFactory struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
-	cloudwatch   cloudwatchiface.CloudWatchAPI
+	metrics      MetricsSender
 	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
@@ -162,12 +159,11 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 		return config, factory, err
 	}
 	factory.s3 = s3.New(awsSession)
-	factory.cloudwatch = cloudwatch.New(awsSession)
-	hostname, err := os.Hostname()
+	metricsSender, err := NewCloudwatchSender(awsSession)
 	if err != nil {
 		return config, factory, err
 	}
-	factory.hostname = hostname
+	factory.metrics = metricsSender
 
 	return config, factory, nil
 }

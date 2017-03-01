@@ -10,8 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
@@ -28,7 +26,7 @@ type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
-	metrics      cloudwatchiface.CloudWatchAPI
+	metrics      MetricsSender
 	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
@@ -222,23 +220,9 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	size := *resp.ContentLength
 	logrus.WithFields(logrus.Fields{"time": timestamp, "operation": "GET", "object": fqdn}).Infof("Serving object: %s", fqdn)
 
-	_, err = d.metrics.PutMetricData(&cloudwatch.PutMetricDataInput{
-		Namespace: aws.String("f3"),
-		MetricData: []*cloudwatch.MetricDatum{
-			&cloudwatch.MetricDataum{
-				MetricName: aws.String("GET"),
-				Timestamp:  &timestamp,
-				Unit:       aws.String("Bytes"),
-				Value:      aws.Float64(float64(size)),
-				Dimensions: []*cloudwatch.Dimenson{&cloudwatch.Dimension{
-					Name:  aws.String("Hostname"),
-					Value: aws.String(d.hostname),
-				}},
-			},
-		},
-	})
+	err = d.metrics.SendGet(size, timestamp)
 	if err != nil {
-		err = intoAwsError(err)
+		err := intoAwsError(err)
 		logAwsError(err)
 		return 0, nil, err
 	}
@@ -282,25 +266,11 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	})
 	logrus.WithFields(logrus.Fields{"time": timestamp, "key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
 
-	_, err := d.metrics.PutMetricData(&cloudwatch.PutMetricDataInput{
-		Namespace: aws.String("f3"),
-		MetricData: []*cloudwatch.MetricDatum{
-			&cloudwatch.MetricDataum{
-				MetricName: aws.String("PUT"),
-				Timestamp:  &timestamp,
-				Unit:       aws.String("Bytes"),
-				Value:      aws.Float64(float64(size)),
-				Dimensions: []*cloudwatch.Dimenson{&cloudwatch.Dimension{
-					Name:  aws.String("Hostname"),
-					Value: aws.String(d.hostname),
-				}},
-			},
-		},
-	})
+	err = d.metrics.SendPut(size, timestamp)
 	if err != nil {
-		err = intoAwsError(err)
+		err := intoAwsError(err)
 		logAwsError(err)
-		return 0, nil, err
+		return 0, err
 	}
 
 	return size, err

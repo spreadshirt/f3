@@ -17,6 +17,17 @@ import (
 	ftp "github.com/klingtnet/goftp"
 )
 
+type MetricsSenderMock struct {
+	MetricsSender
+}
+
+func (m MetricsSenderMock) SendPut(size int64, timestamp time.Time) error {
+	return nil
+}
+func (m MetricsSenderMock) SendGet(size int64, timestamp time.Time) error {
+	return nil
+}
+
 type S3Mock struct {
 	s3iface.S3API
 
@@ -142,6 +153,7 @@ func TestS3Driver(t *testing.T) {
 		featureFlags: featureGet | featurePut | featureList | featureRemove,
 		noOverwrite:  noOverwrite,
 		s3:           &mock,
+		metrics:      MetricsSenderMock{},
 		bucketName:   bucketName,
 		bucketURL:    bucketURL,
 	}

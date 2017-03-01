@@ -4,7 +4,10 @@ Documentation=https://git.spreadomat.net/sprd/f3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
-DynamicUser=true
+User=nobody
+Group=nobody
+; systemd>=232: Remove `User` and `Group` directives and enable `DynamicUser`
+; DynamicUser=true
 EnvironmentFile=/etc/default/f3
 PermissionsStartOnly=true
 ; requires libcap-ng-utils

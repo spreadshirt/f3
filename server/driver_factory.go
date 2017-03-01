@@ -3,11 +3,14 @@ package server
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
@@ -32,6 +35,8 @@ type DriverFactory struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
+	cloudwatch   cloudwatchiface.CloudWatchAPI
+	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
 }
@@ -42,6 +47,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
 		s3:           d.s3,
+		metrics:      d.cloudwatch,
 		bucketName:   d.bucketName,
 		bucketURL:    d.bucketURL,
 	}, nil
@@ -156,6 +162,12 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 		return config, factory, err
 	}
 	factory.s3 = s3.New(awsSession)
+	factory.cloudwatch = cloudwatch.New(awsSession)
+	hostname, err := os.Hostname()
+	if err != nil {
+		return config, factory, err
+	}
+	factory.hostname = hostname
 
 	return config, factory, nil
 }

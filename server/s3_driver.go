@@ -10,6 +10,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
@@ -26,6 +28,8 @@ type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
+	metrics      cloudwatchiface.CloudWatchAPI
+	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
 }
@@ -201,14 +205,35 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 	})
 	if err != nil {
 		err := intoAwsError(err)
+		logAwsError(err)
 		if err.Code() == "NotFound" {
 			logrus.WithFields(logrus.Fields{"time": time.Now(), "Object": fqdn}).Errorf("Failed to get object: %q", fqdn)
 		}
 		return 0, nil, err
 	}
+	size := *resp.ContentLength
 	logrus.WithFields(logrus.Fields{"time": time.Now(), "operation": "GET", "object": fqdn}).Infof("Serving object: %s", fqdn)
 
-	return *resp.ContentLength, resp.Body, nil
+	_, err = d.metrics.PutMetricData(&cloudwatch.PutMetricDataInput{
+		Namespace: aws.String("f3"),
+		MetricData: []*cloudwatch.MetricDatum{
+			&cloudwatch.MetricDataum{
+				MetricName: aws.String("GET"),
+				Timestamp:  &time.Now(),
+				Unit:       aws.String("Bytes"),
+				Value:      aws.Float64(float64(size)),
+				Dimensions: []*cloudwatch.Dimenson{&cloudwatch.Dimension{
+					Name:  aws.String("Hostname"),
+					Value: aws.String(d.hostname),
+				}},
+			},
+		},
+	})
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return size, resp.Body, nil
 }
 
 // PutFile stores the object with key `key`.
@@ -237,6 +262,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		logrus.WithFields(logrus.Fields{"time": time.Now(), "object": fqdn, "action": "PUT", "error": err}).Errorf(msg)
 		return -1, err
 	}
+	size := int64(len(buffer))
 
 	_, err = d.s3.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(d.bucketName),
@@ -245,7 +271,26 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	})
 	logrus.WithFields(logrus.Fields{"time": time.Now(), "key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
 
-	return 0, err
+	_, err := d.metrics.PutMetricData(&cloudwatch.PutMetricDataInput{
+		Namespace: aws.String("f3"),
+		MetricData: []*cloudwatch.MetricDatum{
+			&cloudwatch.MetricDataum{
+				MetricName: aws.String("PUT"),
+				Timestamp:  &time.Now(),
+				Unit:       aws.String("Bytes"),
+				Value:      aws.Float64(float64(size)),
+				Dimensions: []*cloudwatch.Dimenson{&cloudwatch.Dimension{
+					Name:  aws.String("Hostname"),
+					Value: aws.String(d.hostname),
+				}},
+			},
+		},
+	})
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return size, err
 }
 
 // fqdn returns the fully qualified name for a object with key `key`.

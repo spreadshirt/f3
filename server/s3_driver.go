@@ -243,21 +243,21 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		return -1, err
 	}
 
+	timestamp := time.Now()
 	if d.noOverwrite && d.objectExists(key) {
-		msg := fmt.Sprintf("object %q already exists and overwriting is forbidden", fqdn)
-		logrus.Error(msg)
-		return -1, fmt.Errorf(msg)
+		err := fmt.Errorf("object %q already exists and overwriting is forbidden", fqdn)
+		logrus.WithFields(logrus.Fields{"time": timestamp, "key": fqdn, "error": err}).Error(err)
+		return -1, err
 	}
 
-	timestamp := time.Now()
 	_, err := d.uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(d.bucketName),
 		Key:    aws.String(key),
 		Body:   data,
 	})
 	if err != nil {
-		msg := fmt.Sprintf("Failed to put object %q because reading from source failed.", fqdn)
-		logrus.WithFields(logrus.Fields{"time": timestamp, "object": fqdn, "action": "PUT", "error": err}).Error(msg)
+		err := fmt.Errorf("Failed to put object %q because reading from source failed.", fqdn)
+		logrus.WithFields(logrus.Fields{"time": timestamp, "object": fqdn, "action": "PUT", "error": err}).Error(err)
 		return -1, err
 	}
 	size, err := d.objectSize(key)

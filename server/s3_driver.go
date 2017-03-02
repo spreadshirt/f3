@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -25,7 +26,7 @@ type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
-	uploader     *s3manager.Uploader
+	uploader     s3manageriface.UploaderAPI
 	metrics      MetricsSender
 	hostname     string
 	bucketName   string

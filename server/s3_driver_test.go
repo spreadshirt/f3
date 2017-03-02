@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	ftp "github.com/klingtnet/goftp"
+	"github.com/sirupsen/logrus"
 )
 
 type bucketMock struct {
@@ -195,6 +196,7 @@ func (mock *s3Mock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectO
 }
 
 func TestS3Driver(t *testing.T) {
+	logrus.SetLevel(logrus.PanicLevel)
 	bucketName := "test-bucket"
 	bucketMock := newBucketMock(bucketName)
 	bucketURL := intoURL(fmt.Sprintf("https://%s.my.s3.host.com", bucketName))

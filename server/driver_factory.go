@@ -56,6 +56,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 
 	cloudwatchSession, err := session.NewSession(&aws.Config{
 		Endpoint:    aws.String(d.s3Endpoint),
+		Region:      aws.String(d.s3Region),
 		Credentials: d.awsCredentials,
 	})
 	if err != nil {

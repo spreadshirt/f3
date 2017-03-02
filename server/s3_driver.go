@@ -238,9 +238,9 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 
 	fqdn := d.fqdn(key)
 	if appendMode {
-		msg := fmt.Sprintf("can not append to object %q because the backend does not support appending", fqdn)
-		logrus.Error(msg)
-		return -1, fmt.Errorf(msg)
+		err := fmt.Errorf("can not append to object %q because the backend does not support appending", fqdn)
+		logrus.Error(err)
+		return -1, err
 	}
 
 	if d.noOverwrite && d.objectExists(key) {

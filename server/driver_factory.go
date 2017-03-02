@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -31,8 +30,7 @@ const (
 type DriverFactory struct {
 	featureFlags int
 	noOverwrite  bool
-	s3           s3iface.S3API
-	metrics      MetricsSender
+	awsSession   *session.Session
 	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
@@ -40,13 +38,19 @@ type DriverFactory struct {
 
 // NewDriver returns a new FTP driver.
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
+	metricsSender, err := NewCloudwatchSender(d.awsSession)
+	if err != nil {
+		return nil, err
+	}
+	client := s3.New(d.awsSession)
+
 	return S3Driver{
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
-		s3:           d.s3,
-		metrics:      d.metrics,
-		bucketName:   d.bucketName,
-		bucketURL:    d.bucketURL,
+		s3:           client,
+		metrics:    metricsSender,
+		bucketName: d.bucketName,
+		bucketURL:  d.bucketURL,
 	}, nil
 }
 
@@ -158,12 +162,7 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	if err != nil {
 		return config, factory, err
 	}
-	factory.s3 = s3.New(awsSession)
-	metricsSender, err := NewCloudwatchSender(awsSession)
-	if err != nil {
-		return config, factory, err
-	}
-	factory.metrics = metricsSender
+	factory.awsSession = awsSession
 
 	return config, factory, nil
 }

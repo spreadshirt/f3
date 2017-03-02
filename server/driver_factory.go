@@ -32,6 +32,8 @@ type DriverFactory struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
+	metrics      MetricsSender
+	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
 }
@@ -42,6 +44,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
 		s3:           d.s3,
+		metrics:      d.metrics,
 		bucketName:   d.bucketName,
 		bucketURL:    d.bucketURL,
 	}, nil
@@ -156,6 +159,11 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 		return config, factory, err
 	}
 	factory.s3 = s3.New(awsSession)
+	metricsSender, err := NewCloudwatchSender(awsSession)
+	if err != nil {
+		return config, factory, err
+	}
+	factory.metrics = metricsSender
 
 	return config, factory, nil
 }

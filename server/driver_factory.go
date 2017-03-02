@@ -29,27 +29,49 @@ const (
 // DriverFactory builds FTP drivers.
 // Implements https://godoc.org/github.com/goftp/server#DriverFactory
 type DriverFactory struct {
-	featureFlags int
-	noOverwrite  bool
-	awsSession   *session.Session
-	hostname     string
-	bucketName   string
-	bucketURL    *url.URL
+	featureFlags   int
+	noOverwrite    bool
+	awsCredentials *credentials.Credentials
+	s3PathStyle    bool
+	s3Region       string
+	s3Endpoint     string
+	hostname       string
+	bucketName     string
+	bucketURL      *url.URL
 }
 
 // NewDriver returns a new FTP driver.
 func (d DriverFactory) NewDriver() (ftp.Driver, error) {
-	metricsSender, err := NewCloudwatchSender(d.awsSession)
+	logrus.Debugf("Trying to create an aws session with: Region: %q, PathStyle: %v, Endpoint: %q", d.s3Region, d.s3PathStyle, d.s3Endpoint)
+	s3Session, err := session.NewSession(&aws.Config{
+		Region:           aws.String(d.s3Region),
+		S3ForcePathStyle: aws.Bool(d.s3PathStyle),
+		Endpoint:         aws.String(d.s3Endpoint),
+		Credentials:      d.awsCredentials,
+	})
 	if err != nil {
 		return nil, err
 	}
-	client := s3.New(d.awsSession)
+	s3Client := s3.New(s3Session)
+
+	cloudwatchSession, err := session.NewSession(&aws.Config{
+		Endpoint:    aws.String(d.s3Endpoint),
+		Credentials: d.awsCredentials,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	metricsSender, err := NewCloudwatchSender(cloudwatchSession)
+	if err != nil {
+		return nil, err
+	}
 
 	return S3Driver{
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
-		s3:           client,
-		uploader:     s3manager.NewUploaderWithClient(client),
+		s3:           s3Client,
+		uploader:     s3manager.NewUploaderWithClient(s3Client),
 		metrics:      metricsSender,
 		bucketName:   d.bucketName,
 		bucketURL:    d.bucketURL,
@@ -138,6 +160,7 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	}
 	accessKey, secretKey := pair[0], pair[1]
 	sessionToken := ""
+	factory.awsCredentials = credentials.NewStaticCredentials(accessKey, secretKey, sessionToken)
 
 	bucketURL, err := url.Parse(config.S3BucketURL)
 	if err != nil {
@@ -152,19 +175,9 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 	}
 	bucketName, endpoint := pair[0], fmt.Sprintf("%s://%s", bucketURL.Scheme, pair[1])
 	factory.bucketName = bucketName
-
-	logrus.Debugf("Trying to create an aws session with: Region: %q, PathStyle: %v, Endpoint: %q", config.S3Region, config.S3UsePathStyle, endpoint)
-	// create an s3 session
-	awsSession, err := session.NewSession(&aws.Config{
-		Region:           aws.String(config.S3Region),
-		S3ForcePathStyle: aws.Bool(config.S3UsePathStyle),
-		Endpoint:         aws.String(endpoint),
-		Credentials:      credentials.NewStaticCredentials(accessKey, secretKey, sessionToken),
-	})
-	if err != nil {
-		return config, factory, err
-	}
-	factory.awsSession = awsSession
+	factory.s3Endpoint = endpoint
+	factory.s3Region = config.S3Region
+	factory.s3PathStyle = config.S3UsePathStyle
 
 	return config, factory, nil
 }

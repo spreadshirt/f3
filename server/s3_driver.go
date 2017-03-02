@@ -272,7 +272,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		logrus.Errorf("Sending PUT metrics failed: %s", err)
 	}
 
-	return size, err
+	return size, nil
 }
 
 // fqdn returns the fully qualified name for a object with key `key`.

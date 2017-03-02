@@ -19,34 +19,34 @@ import (
 	ftp "github.com/klingtnet/goftp"
 )
 
-type BucketMock struct {
-	objects map[string]ObjectMock
+type bucketMock struct {
+	objects map[string]objectMock
 	name    string
 	lock    sync.Mutex
 }
 
-func NewBucketMock(name string) *BucketMock {
-	return &BucketMock{
-		objects: map[string]ObjectMock{},
+func newBucketMock(name string) *bucketMock {
+	return &bucketMock{
+		objects: map[string]objectMock{},
 		name:    name,
 	}
 }
-func (b *BucketMock) Put(key string, object ObjectMock) {
+func (b *bucketMock) Put(key string, object objectMock) {
 	b.lock.Lock()
 	b.objects[key] = object
 	b.lock.Unlock()
 }
 
-func (b *BucketMock) Get(key string) (ObjectMock, error) {
+func (b *bucketMock) Get(key string) (objectMock, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	if object, ok := b.objects[key]; ok {
 		return object, nil
 	}
-	return ObjectMock{}, fmt.Errorf("No object %q found in bucket %q", key, b.name)
+	return objectMock{}, fmt.Errorf("No object %q found in bucket %q", key, b.name)
 }
 
-func (b *BucketMock) Delete(key string) error {
+func (b *bucketMock) Delete(key string) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	if _, ok := b.objects[key]; !ok {
@@ -57,17 +57,17 @@ func (b *BucketMock) Delete(key string) error {
 	return nil
 }
 
-func (b *BucketMock) Name() string {
+func (b *bucketMock) Name() string {
 	return b.name
 }
 
-func (b *BucketMock) List() map[string]ObjectMock {
+func (b *bucketMock) List() map[string]objectMock {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	m := map[string]ObjectMock{}
+	m := map[string]objectMock{}
 	for key, object := range b.objects {
-		m[key] = ObjectMock{
+		m[key] = objectMock{
 			data:    object.data, // should be deep copied, but hey ...
 			lastMod: object.lastMod,
 			etag:    object.etag,
@@ -76,22 +76,22 @@ func (b *BucketMock) List() map[string]ObjectMock {
 	return m
 }
 
-type MetricsSenderMock struct {
+type metricsSenderMock struct {
 	MetricsSender
 }
 
-func (m MetricsSenderMock) SendPut(size int64, timestamp time.Time) error {
+func (m metricsSenderMock) SendPut(size int64, timestamp time.Time) error {
 	return nil
 }
-func (m MetricsSenderMock) SendGet(size int64, timestamp time.Time) error {
+func (m metricsSenderMock) SendGet(size int64, timestamp time.Time) error {
 	return nil
 }
 
-type S3UploaderMock struct {
-	bucket *BucketMock
+type s3UploaderMock struct {
+	bucket *bucketMock
 }
 
-func (s *S3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error) {
+func (s *s3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error) {
 	bucketName := aws.StringValue(input.Bucket)
 	if bucketName != s.bucket.Name() {
 		return nil, fmt.Errorf("Wrong bucket, expected %q but was %q", bucketName, s.bucket.Name())
@@ -102,7 +102,7 @@ func (s *S3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s
 		return nil, awserr.New("FailedToReadBody", fmt.Sprintf("Could not read data for key: %s", key), nil)
 	}
 	etag := fmt.Sprintf("%s", sha256.Sum256(append([]byte(key), data...)))
-	s.bucket.Put(key, ObjectMock{
+	s.bucket.Put(key, objectMock{
 		data,
 		time.Now(),
 		etag,
@@ -110,18 +110,18 @@ func (s *S3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s
 	return &s3manager.UploadOutput{}, nil
 }
 
-type S3Mock struct {
+type s3Mock struct {
 	s3iface.S3API
-	bucket *BucketMock
+	bucket *bucketMock
 }
 
-type ObjectMock struct {
+type objectMock struct {
 	data    []byte
 	lastMod time.Time
 	etag    string
 }
 
-func (mock *S3Mock) HeadObject(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
+func (mock *s3Mock) HeadObject(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (mock *S3Mock) HeadObject(input *s3.HeadObjectInput) (*s3.HeadObjectOutput,
 	}, nil
 }
 
-func (mock *S3Mock) HeadBucket(input *s3.HeadBucketInput) (*s3.HeadBucketOutput, error) {
+func (mock *s3Mock) HeadBucket(input *s3.HeadBucketInput) (*s3.HeadBucketOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (mock *S3Mock) HeadBucket(input *s3.HeadBucketInput) (*s3.HeadBucketOutput,
 	return &s3.HeadBucketOutput{}, nil
 }
 
-func (mock *S3Mock) ListObjects(input *s3.ListObjectsInput) (*s3.ListObjectsOutput, error) {
+func (mock *s3Mock) ListObjects(input *s3.ListObjectsInput) (*s3.ListObjectsOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (mock *S3Mock) ListObjects(input *s3.ListObjectsInput) (*s3.ListObjectsOutp
 	return &s3.ListObjectsOutput{Contents: contents}, nil
 }
 
-func (mock *S3Mock) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+func (mock *s3Mock) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func (mock *S3Mock) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, er
 	}, nil
 }
 
-func (mock *S3Mock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+func (mock *s3Mock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
 	}
@@ -196,9 +196,9 @@ func (mock *S3Mock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectO
 
 func TestS3Driver(t *testing.T) {
 	bucketName := "test-bucket"
-	bucketMock := NewBucketMock(bucketName)
+	bucketMock := newBucketMock(bucketName)
 	bucketURL := intoURL(fmt.Sprintf("https://%s.my.s3.host.com", bucketName))
-	mock := S3Mock{
+	mock := s3Mock{
 		bucket: bucketMock,
 	}
 	noOverwrite := true
@@ -206,10 +206,10 @@ func TestS3Driver(t *testing.T) {
 		featureFlags: featureGet | featurePut | featureList | featureRemove,
 		noOverwrite:  noOverwrite,
 		s3:           &mock,
-		uploader: &S3UploaderMock{
+		uploader: &s3UploaderMock{
 			bucket: bucketMock,
 		},
-		metrics:    MetricsSenderMock{},
+		metrics:    metricsSenderMock{},
 		bucketName: bucketName,
 		bucketURL:  bucketURL,
 	}

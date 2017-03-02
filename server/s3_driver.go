@@ -1,10 +1,8 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"time"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -26,6 +25,7 @@ type S3Driver struct {
 	featureFlags int
 	noOverwrite  bool
 	s3           s3iface.S3API
+	uploader     *s3manager.Uploader
 	metrics      MetricsSender
 	hostname     string
 	bucketName   string
@@ -249,19 +249,21 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 	}
 
 	timestamp := time.Now()
-	buffer, err := ioutil.ReadAll(data)
+	_, err := d.uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(d.bucketName),
+		Key:    aws.String(key),
+		Body:   data,
+	})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to put object %q because reading from source failed.", fqdn)
 		logrus.WithFields(logrus.Fields{"time": timestamp, "object": fqdn, "action": "PUT", "error": err}).Errorf(msg)
 		return -1, err
 	}
-	size := int64(len(buffer))
-
-	_, err = d.s3.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(d.bucketName),
-		Key:    aws.String(key),
-		Body:   bytes.NewReader(buffer),
-	})
+	size, err := d.objectSize(key)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"time": timestamp, "key": fqdn, "action": "PUT", "error": err}).Errorf("Could not determine size of %q", fqdn)
+		return size, err
+	}
 	logrus.WithFields(logrus.Fields{"time": timestamp, "key": fqdn, "action": "PUT"}).Infof("Put %q", fqdn)
 
 	err = d.metrics.SendPut(size, timestamp)
@@ -295,4 +297,18 @@ func (d S3Driver) objectExists(key string) bool {
 		return false
 	}
 	return true
+}
+
+// objectSize returns the size of the object.
+func (d S3Driver) objectSize(key string) (int64, error) {
+	logrus.Debugf("Trying to get size of object %q.", d.fqdn(key))
+	resp, err := d.s3.HeadObject(&s3.HeadObjectInput{
+		Bucket: aws.String(d.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		logrus.Debugf("Failed to check size of object %q", d.fqdn(key))
+		return -1, err
+	}
+	return aws.Int64Value(resp.ContentLength), nil
 }

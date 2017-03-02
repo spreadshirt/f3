@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	ftp "github.com/klingtnet/goftp"
 	"github.com/sirupsen/logrus"
 )
@@ -48,6 +49,11 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
 		s3:           client,
+		// Note: Options for the uploader can be set but the SDK
+		// provides sane defaults:
+		// - https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#pkg-constants
+		// - https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Uploader
+		uploader:   s3manager.NewUploaderWithClient(client),
 		metrics:    metricsSender,
 		bucketName: d.bucketName,
 		bucketURL:  d.bucketURL,

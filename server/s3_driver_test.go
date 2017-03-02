@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
 	"testing"
@@ -12,8 +13,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	ftp "github.com/klingtnet/goftp"
 )
 
@@ -89,6 +92,28 @@ func (mock *S3Mock) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, er
 	}, nil
 }
 
+func (mock *S3Mock) PutObjectRequest(input *s3.PutObjectInput) (*request.Request, *s3.PutObjectOutput) {
+	key := aws.StringValue(input.Key)
+	data, err := ioutil.ReadAll(input.Body)
+	if err != nil {
+		return nil, nil
+	}
+	etag := fmt.Sprintf("%s", sha256.Sum256(append([]byte(key), data...)))
+	mock.objects[key] = ObjectMock{
+		data,
+		time.Now(),
+		etag,
+	}
+
+	return &request.Request{
+		HTTPRequest: &http.Request{
+			Header: http.Header{},
+			URL:    &url.URL{},
+		},
+		HTTPResponse: &http.Response{},
+	}, &s3.PutObjectOutput{}
+}
+
 func (mock *S3Mock) ListObjects(input *s3.ListObjectsInput) (*s3.ListObjectsOutput, error) {
 	if err := input.Validate(); err != nil {
 		return nil, err
@@ -153,6 +178,7 @@ func TestS3Driver(t *testing.T) {
 		featureFlags: featureGet | featurePut | featureList | featureRemove,
 		noOverwrite:  noOverwrite,
 		s3:           &mock,
+		uploader:     &s3manager.Uploader{S3: &mock},
 		metrics:      MetricsSenderMock{},
 		bucketName:   bucketName,
 		bucketURL:    bucketURL,

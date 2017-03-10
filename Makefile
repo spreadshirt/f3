@@ -26,7 +26,7 @@ docker: $(APP)
 	docker build -t $(APP) .
 
 test: $(GO_PATH)
-	GOPATH=$(GO_PATH) go test -v github.com/spreadshirt/$(APP)/server
+	GOPATH=$(GO_PATH) go test github.com/spreadshirt/$(APP)/server
 
 deb: $(APP) test
 	mkdir -p deb/usr/sbin

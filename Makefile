@@ -61,4 +61,5 @@ clean:
 	rm -f $(APP)
 
 clean-all: clean
+	rm -f $(APP)_*.deb
 	rm -rf .go vendor

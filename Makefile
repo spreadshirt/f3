@@ -4,16 +4,16 @@ APP		:=f3
 VERSION :=$(shell git describe --tags --always|sed 's/^v//g')
 GO_FLAGS:=-ldflags="-X main.Version=$(VERSION)"
 SOURCES	:=$(wildcard server/*.go)
-GO_PATH	:=$(shell pwd)/.go
+GOPATH	:=$(shell pwd)/.go
 DEB_NAME:=$(APP)_$(VERSION)_amd64.deb
 
 all: $(APP)
 
-$(GO_PATH):
+$(GOPATH):
 	s/bootstrap
 
-$(APP): $(APP).go $(SOURCES) $(GO_PATH)
-	GOPATH=$(GO_PATH) go build $(GO_FLAGS) github.com/spreadshirt/$(APP)
+$(APP): $(APP).go $(SOURCES) $(GOPATH)
+	go build $(GO_FLAGS) github.com/spreadshirt/$(APP)
 
 install: test $(APP)
 ifeq ($$EUID, 0)
@@ -25,8 +25,8 @@ endif
 docker: $(APP)
 	docker build -t $(APP) .
 
-test: $(GO_PATH)
-	GOPATH=$(GO_PATH) go test github.com/spreadshirt/$(APP)/server
+test: $(GOPATH)
+	go test github.com/spreadshirt/$(APP)/server
 
 deb: $(APP) test
 	mkdir -p deb/usr/sbin
@@ -49,12 +49,12 @@ fmt:
 check: vet lint
 
 vet:
-	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(APP)
-	@GOPATH=$(GO_PATH) go vet github.com/spreadshirt/$(APP)/server
+	go vet github.com/spreadshirt/$(APP)
+	go vet github.com/spreadshirt/$(APP)/server
 
 lint:
-	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(APP)
-	@GOPATH=$(GO_PATH) golint github.com/spreadshirt/$(APP)/server
+	golint github.com/spreadshirt/$(APP)
+	golint github.com/spreadshirt/$(APP)/server
 
 clean:
 	rm -f $(APP)

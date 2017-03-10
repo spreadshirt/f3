@@ -13,7 +13,8 @@ $(GOPATH):
 	s/bootstrap
 
 $(APP): $(APP).go $(SOURCES) $(GOPATH)
-	go build $(GO_FLAGS) github.com/spreadshirt/$(APP)
+	go install $(GO_FLAGS) github.com/spreadshirt/$(APP)
+	@cp $(GOPATH)/bin/$(APP) $(APP)
 
 install: test $(APP)
 ifeq ($$EUID, 0)

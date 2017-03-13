@@ -41,6 +41,8 @@ deb: $(APP) test
 		--prefix /\
 		--description 'An FTP to AWS s3 bridge'\
 		--url 'github.com/spreadshirt/f3'\
+		--deb-systemd 'deb/lib/systemd/system/f3.service'\
+		--no-deb-systemd-restart-after-upgrade\
 		--chdir deb
 
 fmt:

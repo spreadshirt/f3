@@ -36,12 +36,12 @@ deb: $(APP) test
 		--input-type dir\
 		--output-type deb\
 		--version $(VERSION)\
-		--name $(APP)\
+		--name $(APP)-server\
 		--architecture amd64\
 		--prefix /\
 		--description 'An FTP to AWS s3 bridge'\
 		--url 'github.com/spreadshirt/f3'\
-		--deb-systemd 'deb/lib/systemd/system/f3.service'\
+		--deb-systemd 'deb/lib/systemd/system/$(APP)-server.service'\
 		--no-deb-systemd-restart-after-upgrade\
 		--chdir deb
 

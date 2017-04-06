@@ -1,6 +1,6 @@
 [Unit]
 Description=f3
-Documentation=https://git.spreadomat.net/sprd/f3
+Documentation=https://github.com/spreadshirt/f3
 Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]

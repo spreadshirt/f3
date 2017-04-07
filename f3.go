@@ -20,7 +20,7 @@ var Version string
 
 type cliFlags struct {
 	ftpAddr       string
-	features      []string
+	features      string
 	noOverwrite   bool
 	s3Credentials string
 	s3Bucket      string
@@ -56,8 +56,8 @@ See https://git.spreadomat.net/sprd/f3 for details.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface")
-	cmd.PersistentFlags().StringArrayVar(&flags.features, "features", server.DefaultFeatureSet, "A comma separated list of FTP features to enable.")
+	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
+	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q", server.DefaultFeatureSet))
 	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
 	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
 	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")

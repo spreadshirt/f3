@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -14,14 +15,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DefaultFeatureSet is the driver default (set of) features
-var DefaultFeatureSet []string
-
-func init() {
-	DefaultFeatureSet = []string{"ls"}
-}
-
 const (
+	// DefaultFeatureSet is the driver default (set of) features
+	DefaultFeatureSet = "ls"
 	// DefaultRegion is the default bucket region
 	DefaultRegion = "custom"
 )
@@ -80,7 +76,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 
 // FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.
 type FactoryConfig struct {
-	FtpFeatures    []string
+	FtpFeatures    string
 	FtpNoOverwrite bool
 	S3Credentials  string
 	S3BucketURL    string
@@ -121,8 +117,13 @@ const (
 	featurePut       = 1 << iota
 )
 
-func parseFeatureSet(features []string) (int, error) {
+func parseFeatureSet(featureSet string) (int, error) {
 	featureFlags := 0
+	featureSet = strings.TrimSpace(featureSet)
+	if featureSet == "" {
+		return featureFlags, errors.New("Empty feature set")
+	}
+	features := strings.Split(featureSet, ",")
 	for _, feature := range features {
 		switch strings.ToLower(feature) {
 		case "cd":

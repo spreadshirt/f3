@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"git.spreadomat.net/sprd/f3/server"
-	ftp "github.com/klingtnet/goftp"
+	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

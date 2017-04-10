@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	ftp "github.com/klingtnet/goftp"
+	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 )
 

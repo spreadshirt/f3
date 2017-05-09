@@ -25,15 +25,16 @@ const (
 // DriverFactory builds FTP drivers.
 // Implements https://godoc.org/github.com/goftp/server#DriverFactory
 type DriverFactory struct {
-	featureFlags   int
-	noOverwrite    bool
-	awsCredentials *credentials.Credentials
-	s3PathStyle    bool
-	s3Region       string
-	s3Endpoint     string
-	hostname       string
-	bucketName     string
-	bucketURL      *url.URL
+	featureFlags      int
+	noOverwrite       bool
+	awsCredentials    *credentials.Credentials
+	s3PathStyle       bool
+	s3Region          string
+	s3Endpoint        string
+	hostname          string
+	bucketName        string
+	bucketURL         *url.URL
+	DisableCloudWatch bool
 }
 
 // NewDriver returns a new FTP driver.
@@ -50,19 +51,23 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 	}
 	s3Client := s3.New(s3Session)
 
-	cloudwatchSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(d.s3Region),
-		Credentials: d.awsCredentials,
-	})
-	if err != nil {
-		return nil, err
-	}
+	var metricsSender MetricsSender
+	if d.DisableCloudWatch {
+		metricsSender = NopSender{}
+	} else {
+		cloudwatchSession, err := session.NewSession(&aws.Config{
+			Region:      aws.String(d.s3Region),
+			Credentials: d.awsCredentials,
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	metricsSender, err := NewCloudwatchSender(cloudwatchSession)
-	if err != nil {
-		return nil, err
+		metricsSender, err = NewCloudwatchSender(cloudwatchSession)
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	return S3Driver{
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
@@ -76,17 +81,19 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 
 // FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.
 type FactoryConfig struct {
-	FtpFeatures    string
-	FtpNoOverwrite bool
-	S3Credentials  string
-	S3BucketURL    string
-	S3Region       string
-	S3UsePathStyle bool
+	FtpFeatures       string
+	FtpNoOverwrite    bool
+	S3Credentials     string
+	S3BucketURL       string
+	S3Region          string
+	S3UsePathStyle    bool
+	DisableCloudWatch bool
 }
 
 // NewDriverFactory returns a DriverFactory.
 func NewDriverFactory(config *FactoryConfig) (DriverFactory, error) {
 	_, factory, err := setupS3(setupFtp(config, &DriverFactory{}, nil))
+	factory.DisableCloudWatch = config.DisableCloudWatch
 	return *factory, err
 }
 

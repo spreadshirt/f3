@@ -19,13 +19,14 @@ const AppName string = "f3"
 var Version string
 
 type cliFlags struct {
-	ftpAddr       string
-	features      string
-	noOverwrite   bool
-	s3Credentials string
-	s3Bucket      string
-	s3Region      string
-	verbose       bool
+	ftpAddr           string
+	features          string
+	noOverwrite       bool
+	s3Credentials     string
+	s3Bucket          string
+	s3Region          string
+	disableCloudwatch bool
+	verbose           bool
 }
 
 func main() {
@@ -62,6 +63,7 @@ See https://git.spreadomat.net/sprd/f3 for details.`,
 	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
 	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")
 	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, "Region where the s3 bucket is located in")
+	cmd.PersistentFlags().BoolVar(&flags.disableCloudwatch, "disable-cloudwatch", false, "Disable CloudWatch metrics")
 	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "Print what is being done")
 
 	err := cmd.Execute()
@@ -87,11 +89,12 @@ func run(credentialsFilename string, flags cliFlags) error {
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpFeatures:    flags.features,
-		FtpNoOverwrite: flags.noOverwrite,
-		S3Credentials:  flags.s3Credentials,
-		S3BucketURL:    flags.s3Bucket,
-		S3Region:       flags.s3Region,
+		FtpFeatures:       flags.features,
+		FtpNoOverwrite:    flags.noOverwrite,
+		S3Credentials:     flags.s3Credentials,
+		S3BucketURL:       flags.s3Bucket,
+		S3Region:          flags.s3Region,
+		DisableCloudWatch: flags.disableCloudwatch,
 	})
 	if err != nil {
 		return err

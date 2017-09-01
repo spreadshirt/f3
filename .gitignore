@@ -5,3 +5,4 @@
 /deb/usr/sbin
 /f3*.deb
 /.vagrant/
+/vendor/

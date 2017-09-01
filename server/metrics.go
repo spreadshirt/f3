@@ -18,6 +18,15 @@ type MetricsSender interface {
 	SendGet(size int64, timestamp time.Time) error
 }
 
+// NopSender returns immediately.
+type NopSender struct{}
+
+// SendPut returns nil.
+func (n NopSender) SendPut(size int64, timestamp time.Time) error { return nil }
+
+// SendGet returns nil.
+func (n NopSender) SendGet(size int64, timestamp time.Time) error { return nil }
+
 // CloudwatchSender implements MetricsSender for amazon's cloudwatch service.
 type CloudwatchSender struct {
 	metrics  cloudwatchiface.CloudWatchAPI

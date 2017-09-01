@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"git.spreadomat.net/sprd/f3/server"
-	ftp "github.com/klingtnet/goftp"
+	"github.com/spreadshirt/f3/meta"
+	"github.com/spreadshirt/f3/server"
+
+	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -15,17 +17,15 @@ import (
 // AppName is the name of the program.
 const AppName string = "f3"
 
-// Version is the current version of ftps3.
-var Version string
-
 type cliFlags struct {
-	ftpAddr       string
-	features      []string
-	noOverwrite   bool
-	s3Credentials string
-	s3Bucket      string
-	s3Region      string
-	verbose       bool
+	ftpAddr           string
+	features          string
+	noOverwrite       bool
+	s3Credentials     string
+	s3Bucket          string
+	s3Region          string
+	disableCloudwatch bool
+	verbose           bool
 }
 
 func main() {
@@ -39,14 +39,14 @@ It maps FTP commands to s3 equivalents and stores uploaded files as objects in a
 The feature set of the FTP server can be set very fine grained, e.g. you can only allow 'ls' and 'get' operations.
 Additionally, you can prevent objects from getting overwritten.
 
-See https://git.spreadomat.net/sprd/f3 for details.`,
+See https://github.com/spreadshirt/f3 for details.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 1 {
 				cmd.Usage()
 				return
 			}
 			if args[0] == "version" {
-				fmt.Printf("%s %s\n", AppName, Version)
+				fmt.Printf("%s %s\n", AppName, meta.Version)
 				return
 			}
 			err := run(args[0], flags)
@@ -56,12 +56,13 @@ See https://git.spreadomat.net/sprd/f3 for details.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface")
-	cmd.PersistentFlags().StringArrayVar(&flags.features, "features", server.DefaultFeatureSet, "A comma separated list of FTP features to enable.")
+	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
+	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q", server.DefaultFeatureSet))
 	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
 	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
 	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")
 	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, "Region where the s3 bucket is located in")
+	cmd.PersistentFlags().BoolVar(&flags.disableCloudwatch, "disable-cloudwatch", false, "Disable CloudWatch metrics")
 	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "Print what is being done")
 
 	err := cmd.Execute()
@@ -87,11 +88,12 @@ func run(credentialsFilename string, flags cliFlags) error {
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpFeatures:    flags.features,
-		FtpNoOverwrite: flags.noOverwrite,
-		S3Credentials:  flags.s3Credentials,
-		S3BucketURL:    flags.s3Bucket,
-		S3Region:       flags.s3Region,
+		FtpFeatures:       flags.features,
+		FtpNoOverwrite:    flags.noOverwrite,
+		S3Credentials:     flags.s3Credentials,
+		S3BucketURL:       flags.s3Bucket,
+		S3Region:          flags.s3Region,
+		DisableCloudWatch: flags.disableCloudwatch,
 	})
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -10,18 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	ftp "github.com/klingtnet/goftp"
+	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 )
 
-// DefaultFeatureSet is the driver default (set of) features
-var DefaultFeatureSet []string
-
-func init() {
-	DefaultFeatureSet = []string{"ls"}
-}
-
 const (
+	// DefaultFeatureSet is the driver default (set of) features
+	DefaultFeatureSet = "ls"
 	// DefaultRegion is the default bucket region
 	DefaultRegion = "custom"
 )
@@ -29,15 +25,16 @@ const (
 // DriverFactory builds FTP drivers.
 // Implements https://godoc.org/github.com/goftp/server#DriverFactory
 type DriverFactory struct {
-	featureFlags   int
-	noOverwrite    bool
-	awsCredentials *credentials.Credentials
-	s3PathStyle    bool
-	s3Region       string
-	s3Endpoint     string
-	hostname       string
-	bucketName     string
-	bucketURL      *url.URL
+	featureFlags      int
+	noOverwrite       bool
+	awsCredentials    *credentials.Credentials
+	s3PathStyle       bool
+	s3Region          string
+	s3Endpoint        string
+	hostname          string
+	bucketName        string
+	bucketURL         *url.URL
+	DisableCloudWatch bool
 }
 
 // NewDriver returns a new FTP driver.
@@ -54,19 +51,23 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 	}
 	s3Client := s3.New(s3Session)
 
-	cloudwatchSession, err := session.NewSession(&aws.Config{
-		Region:      aws.String(d.s3Region),
-		Credentials: d.awsCredentials,
-	})
-	if err != nil {
-		return nil, err
-	}
+	var metricsSender MetricsSender
+	if d.DisableCloudWatch {
+		metricsSender = NopSender{}
+	} else {
+		cloudwatchSession, err := session.NewSession(&aws.Config{
+			Region:      aws.String(d.s3Region),
+			Credentials: d.awsCredentials,
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	metricsSender, err := NewCloudwatchSender(cloudwatchSession)
-	if err != nil {
-		return nil, err
+		metricsSender, err = NewCloudwatchSender(cloudwatchSession)
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	return S3Driver{
 		featureFlags: d.featureFlags,
 		noOverwrite:  d.noOverwrite,
@@ -80,17 +81,19 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 
 // FactoryConfig wraps config values required to setup an FTP driver and for the s3 backend.
 type FactoryConfig struct {
-	FtpFeatures    []string
-	FtpNoOverwrite bool
-	S3Credentials  string
-	S3BucketURL    string
-	S3Region       string
-	S3UsePathStyle bool
+	FtpFeatures       string
+	FtpNoOverwrite    bool
+	S3Credentials     string
+	S3BucketURL       string
+	S3Region          string
+	S3UsePathStyle    bool
+	DisableCloudWatch bool
 }
 
 // NewDriverFactory returns a DriverFactory.
 func NewDriverFactory(config *FactoryConfig) (DriverFactory, error) {
 	_, factory, err := setupS3(setupFtp(config, &DriverFactory{}, nil))
+	factory.DisableCloudWatch = config.DisableCloudWatch
 	return *factory, err
 }
 
@@ -121,8 +124,13 @@ const (
 	featurePut       = 1 << iota
 )
 
-func parseFeatureSet(features []string) (int, error) {
+func parseFeatureSet(featureSet string) (int, error) {
 	featureFlags := 0
+	featureSet = strings.TrimSpace(featureSet)
+	if featureSet == "" {
+		return featureFlags, errors.New("Empty feature set")
+	}
+	features := strings.Split(featureSet, ",")
 	for _, feature := range features {
 		switch strings.ToLower(feature) {
 		case "cd":

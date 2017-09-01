@@ -1,9 +1,0 @@
-[[ -z "$project_root" ]]\
-    && "project_root is unset!"\
-    && exit 1
-
-namespace='git.spreadomat.net/sprd'
-project_name="f3"
-full_path="$project_root/.go/src/$namespace/$project_name"
-
-# vim: set syntax=sh:

@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	ftp "github.com/klingtnet/goftp"
+	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 )
 
@@ -109,6 +109,10 @@ func (s *s3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s
 		etag,
 	})
 	return &s3manager.UploadOutput{}, nil
+}
+
+func (s *s3UploaderMock) UploadWithContext(aws.Context, *s3manager.UploadInput, ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error) {
+	return nil, fmt.Errorf("Context upload is not mocked")
 }
 
 type s3Mock struct {

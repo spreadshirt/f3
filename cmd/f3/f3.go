@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.spreadomat.net/sprd/f3/server"
+	"github.com/spreadshirt/f3/server"
 	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -40,7 +40,7 @@ It maps FTP commands to s3 equivalents and stores uploaded files as objects in a
 The feature set of the FTP server can be set very fine grained, e.g. you can only allow 'ls' and 'get' operations.
 Additionally, you can prevent objects from getting overwritten.
 
-See https://git.spreadomat.net/sprd/f3 for details.`,
+See https://github.com/spreadshirt/f3 for details.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 1 {
 				cmd.Usage()

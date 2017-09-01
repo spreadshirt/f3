@@ -10,6 +10,7 @@ import (
 	"github.com/spreadshirt/f3/server"
 
 	ftp "github.com/goftp/server"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -79,12 +80,12 @@ func run(credentialsFilename string, flags cliFlags) error {
 	logrus.Debugf("Trying to read credentials file: %q", credentialsFilename)
 	creds, err := server.AuthenticatorFromFile(credentialsFilename)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to read credentials file %q", credentialsFilename)
 	}
 
 	ftpHost, ftpPort, err := splitFtpAddr(flags.ftpAddr)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to split %q in host and port", flags.ftpAddr)
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
@@ -96,7 +97,7 @@ func run(credentialsFilename string, flags cliFlags) error {
 		DisableCloudWatch: flags.disableCloudwatch,
 	})
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to instantiate new driver factory")
 	}
 
 	ftpServer := ftp.NewServer(&ftp.ServerOpts{

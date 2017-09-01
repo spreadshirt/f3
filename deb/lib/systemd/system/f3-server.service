@@ -20,7 +20,7 @@ ExecStart=/usr/sbin/f3\
     --s3-region="${S3_REGION}"\
     /etc/f3/ftp-credentials.txt
 PIDFile=/var/run/f3/f3.pid
-Restart=on-failure
+Restart=on-abnormal
 ; restrictions
 PrivateDevices=true
 PrivateTmp=true

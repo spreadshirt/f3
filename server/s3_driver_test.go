@@ -111,6 +111,10 @@ func (s *s3UploaderMock) Upload(input *s3manager.UploadInput, options ...func(*s
 	return &s3manager.UploadOutput{}, nil
 }
 
+func (s *s3UploaderMock) UploadWithContext(aws.Context, *s3manager.UploadInput, ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error) {
+	return nil, fmt.Errorf("Context upload is not mocked")
+}
+
 type s3Mock struct {
 	s3iface.S3API
 	bucket *bucketMock

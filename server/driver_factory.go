@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	ftp "github.com/goftp/server"
+	goErrors "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -47,7 +48,7 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 		Credentials:      d.awsCredentials,
 	})
 	if err != nil {
-		return nil, err
+		return nil, goErrors.Wrapf(err, "Failed to instantiate driver")
 	}
 	s3Client := s3.New(s3Session)
 
@@ -60,12 +61,12 @@ func (d DriverFactory) NewDriver() (ftp.Driver, error) {
 			Credentials: d.awsCredentials,
 		})
 		if err != nil {
-			return nil, err
+			return nil, goErrors.Wrapf(err, "Failed to create cloudwatch session")
 		}
 
 		metricsSender, err = NewCloudwatchSender(cloudwatchSession)
 		if err != nil {
-			return nil, err
+			return nil, goErrors.Wrapf(err, "Failed to instantiate cloudwatch sender")
 		}
 	}
 	return S3Driver{
@@ -106,7 +107,7 @@ func setupFtp(config *FactoryConfig, factory *DriverFactory, err error) (*Factor
 	logrus.Debugf("Trying to parse feature set: %q", config.FtpFeatures)
 	featureFlags, err := parseFeatureSet(config.FtpFeatures)
 	if err != nil {
-		return config, factory, err
+		return config, factory, goErrors.Wrapf(err, "Failed to parse FTP feature set: %q", config.FtpFeatures)
 	}
 	factory.featureFlags = featureFlags
 
@@ -172,7 +173,7 @@ func setupS3(config *FactoryConfig, factory *DriverFactory, err error) (*Factory
 
 	bucketURL, err := url.Parse(config.S3BucketURL)
 	if err != nil {
-		return config, factory, err
+		return config, factory, goErrors.Wrapf(err, "Failed to parse s3 bucket URL: %q", config.S3BucketURL)
 	}
 	factory.bucketURL = bucketURL
 

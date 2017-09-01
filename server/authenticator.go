@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Authenticator contains credentials.
@@ -17,7 +19,7 @@ type Authenticator struct {
 func AuthenticatorFromFile(path string) (Authenticator, error) {
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
-		return Authenticator{}, err
+		return Authenticator{}, errors.Wrapf(err, "Failed to read %q", path)
 	}
 	return AuthenticatorFromString(string(raw))
 }

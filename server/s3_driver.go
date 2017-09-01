@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	ftp "github.com/goftp/server"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +51,7 @@ func (d S3Driver) bucketCheck() error {
 		err := intoAwsError(err)
 		logAwsError(err)
 		logrus.Errorf("Bucket %q is not accessible.", d.bucketURL)
-		return err
+		return errors.Wrapf(err, "Bucket %q is not accessible", d.bucketName)
 	}
 	return nil
 }
@@ -63,7 +64,7 @@ func (d S3Driver) Init(conn *ftp.Conn) {
 // Stat returns information about the object with key `key`.
 func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 	if err := d.bucketCheck(); err != nil {
-		return S3ObjectInfo{}, err
+		return S3ObjectInfo{}, errors.Wrapf(err, "Bucket check failed")
 	}
 
 	fqdn := d.fqdn(key)
@@ -120,7 +121,7 @@ func (d S3Driver) ListDir(key string, cb func(ftp.FileInfo) error) error {
 	}
 
 	if err := d.bucketCheck(); err != nil {
-		return err
+		return errors.Wrapf(err, "Bucket check failed")
 	}
 
 	// TODO: Prefix and delimiter
@@ -176,7 +177,7 @@ func (d S3Driver) DeleteFile(key string) error {
 	if err != nil {
 		err := intoAwsError(err)
 		logAwsError(err)
-		logrus.WithFields(logrus.Fields{"time": time.Now(), "code": err.Code(), "error": err.Message()}).Error("Failed to delete object %q.", fqdn)
+		logrus.WithFields(logrus.Fields{"time": time.Now(), "code": err.Code(), "error": err.Message()}).Errorf("Failed to delete object %q.", fqdn)
 		return err
 	}
 
@@ -309,7 +310,7 @@ func (d S3Driver) objectSize(key string) (int64, error) {
 	})
 	if err != nil {
 		logrus.Debugf("Failed to check size of object %q", d.fqdn(key))
-		return -1, err
+		return -1, errors.Wrapf(err, "Failed to check size of object %q", d.fqdn(key))
 	}
 	return aws.Int64Value(resp.ContentLength), nil
 }

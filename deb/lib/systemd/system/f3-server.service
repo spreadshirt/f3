@@ -23,6 +23,9 @@ PIDFile=/var/run/f3/f3.pid
 Restart=on-failure
 ; restrictions
 PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=full
+ReadOnlyPaths=/etc/f3
 NoNewPrivileges=true
 
 [Install]

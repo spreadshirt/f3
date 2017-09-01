@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/cloudwatch/cloudwatchiface"
+	"github.com/pkg/errors"
 )
 
 // MetricsSender defines methods for sending data to a metrics provider.
@@ -37,7 +38,7 @@ type CloudwatchSender struct {
 func NewCloudwatchSender(awsSession *session.Session) (MetricsSender, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed to get hostname")
 	}
 	return &CloudwatchSender{
 		hostname: hostname,
@@ -64,8 +65,9 @@ func (c *CloudwatchSender) SendPut(size int64, timestamp time.Time) error {
 	})
 	if err != nil {
 		logAwsError(intoAwsError(err))
+		return errors.Wrapf(err, "Failed to send cloudwatch PUT metric")
 	}
-	return err
+	return nil
 }
 
 // SendGet stores the metric data for a GET operation in cloudwatch.
@@ -87,6 +89,7 @@ func (c *CloudwatchSender) SendGet(size int64, timestamp time.Time) error {
 	})
 	if err != nil {
 		logAwsError(intoAwsError(err))
+		return errors.Wrapf(err, "Failed to send cloudwatch GET metric")
 	}
-	return err
+	return nil
 }

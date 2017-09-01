@@ -32,6 +32,12 @@
   version = "0.2.2"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
@@ -64,6 +70,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "75d2c4c60c07bf2180fe14d1a499a5c5c8cefbf7ca1098ae6ddbdc03d886814f"
+  inputs-digest = "04dcb61419d680663eb686e33c834bbfe1c0dae395a8667260be4b846f6504e8"
   solver-name = "gps-cdcl"
   solver-version = 1

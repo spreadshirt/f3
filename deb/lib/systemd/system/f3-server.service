@@ -25,7 +25,7 @@ Restart=on-abnormal
 PrivateDevices=true
 PrivateTmp=true
 ProtectSystem=full
-ReadOnlyPaths=/etc/f3
+ReadOnlyDirectories=/etc/f3
 NoNewPrivileges=true
 
 [Install]

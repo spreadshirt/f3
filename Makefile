@@ -12,6 +12,7 @@ GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/met
 all: setup f3
 
 f3: test $(GO_SOURCES)
+	@touch meta/meta.go
 	@cd $(WORKSPACE)\
 		&& go install $(GO_FLAGS) $(NAMESPACE)/cmd/f3
 	@cp $(GOPATH)/bin/$@ $(PWD)

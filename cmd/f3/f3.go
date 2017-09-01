@@ -130,5 +130,5 @@ func splitFtpAddr(addr string) (string, int, error) {
 		return host, -1, fmt.Errorf("Invalid FTP port %q: %s", parts[1], err)
 	}
 
-	return host, int(port), err
+	return host, int(port), nil
 }

@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spreadshirt/f3/meta"
 	"github.com/spreadshirt/f3/server"
+
 	ftp "github.com/goftp/server"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -14,9 +16,6 @@ import (
 
 // AppName is the name of the program.
 const AppName string = "f3"
-
-// Version is the current version of ftps3.
-var Version string
 
 type cliFlags struct {
 	ftpAddr           string
@@ -47,7 +46,7 @@ See https://github.com/spreadshirt/f3 for details.`,
 				return
 			}
 			if args[0] == "version" {
-				fmt.Printf("%s %s\n", AppName, Version)
+				fmt.Printf("%s %s\n", AppName, meta.Version)
 				return
 			}
 			err := run(args[0], flags)

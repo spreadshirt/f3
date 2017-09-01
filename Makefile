@@ -1,4 +1,4 @@
-.PHONY: clean test fmt vet lint setup check-dep check-lint
+.PHONY: clean test fmt vet lint setup check-dep check-lint deb
 
 SHELL		:=bash
 GOPATH		:=$(PWD)/.go
@@ -6,7 +6,8 @@ NAMESPACE	:=github.com/spreadshirt/f3
 WORKSPACE	:=$(GOPATH)/src/$(NAMESPACE)
 GO_SOURCES	:=$(wildcard cmd/f3/*.go server/*.go)
 GO_PACKAGES	:=$(dir $(GO_SOURCES))
-GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(shell git describe --tags --always) -X $(NAMESPACE)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
+VERSION		:=$(shell git describe --tags --always)
+GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
 
 all: setup f3
 
@@ -14,7 +15,7 @@ f3: test $(GO_SOURCES)
 	@cd $(WORKSPACE)\
 		&& go install $(GO_FLAGS) $(NAMESPACE)/cmd/f3
 	@cp $(GOPATH)/bin/$@ $(PWD)
-	
+
 test: setup
 	@cd $(WORKSPACE)\
 		&& go test $(addprefix $(NAMESPACE)/,$(GO_PACKAGES))

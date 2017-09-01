@@ -6,7 +6,7 @@ NAMESPACE	:=github.com/spreadshirt/f3
 WORKSPACE	:=$(GOPATH)/src/$(NAMESPACE)
 GO_SOURCES	:=$(wildcard cmd/f3/*.go server/*.go)
 GO_PACKAGES	:=$(dir $(GO_SOURCES))
-VERSION		:=$(shell git describe --tags --always)
+VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
 GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
 
 all: setup f3

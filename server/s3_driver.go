@@ -238,7 +238,8 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		return -1, notEnabled("PUT")
 	}
 	if data == nil || reflect.ValueOf(data).IsNil() {
-		return -1, fmt.Errorf("PutFile was called with a nil valued io.Reader")
+		logrus.Warn("PutFile was called with a nil valued io.Reader")
+		return -1, fmt.Errorf("PUT with empty data")
 	}
 
 	fqdn := d.fqdn(key)

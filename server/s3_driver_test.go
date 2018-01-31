@@ -232,9 +232,6 @@ func TestIfPutFileChecksForNilReader(t *testing.T) {
 	if err == nil {
 		t.Error("nil valued io.Reader was not handled")
 	}
-	if !strings.Contains(err.Error(), "nil valued io.Reader") {
-		t.Errorf("unexpected error message: %s", err)
-	}
 }
 
 func TestS3Driver(t *testing.T) {

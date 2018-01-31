@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"strings"
@@ -197,6 +198,40 @@ func (mock *s3Mock) DeleteObject(input *s3.DeleteObjectInput) (*s3.DeleteObjectO
 
 	err := mock.bucket.Delete(aws.StringValue(input.Key))
 	return &s3.DeleteObjectOutput{}, err
+}
+
+func TestIfPutFileChecksForNilReader(t *testing.T) {
+	bucketName := "test-bucket"
+	bucketMock := newBucketMock(bucketName)
+	bucketURL := intoURL(fmt.Sprintf("https://%s.my.s3.host.com", bucketName))
+	mock := s3Mock{
+		bucket: bucketMock,
+	}
+
+	d := S3Driver{
+		featureFlags: featurePut,
+		s3:           &mock,
+		uploader: &s3UploaderMock{
+			bucket: bucketMock,
+		},
+		metrics:    metricsSenderMock{},
+		bucketName: bucketName,
+		bucketURL:  bucketURL,
+	}
+	// check against an untyped nil
+	_, err := d.PutFile("some-key", nil, false)
+	if err == nil {
+		t.Error("nil io.Reader was not handled")
+	}
+	// check against a typed nil
+	// you can imagine this is a tuple of (type io.Reader, value nil)
+	// https://golang.org/doc/faq#nil_error
+	var nilReader io.Reader
+	nilReader = nil
+	_, err = d.PutFile("some-key", nilReader, false)
+	if err == nil {
+		t.Error("nil valued io.Reader was not handled")
+	}
 }
 
 func TestS3Driver(t *testing.T) {

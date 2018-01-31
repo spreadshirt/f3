@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"reflect"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -235,6 +236,9 @@ func (d S3Driver) GetFile(key string, offset int64) (int64, io.ReadCloser, error
 func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, error) {
 	if d.featureFlags&featurePut == 0 {
 		return -1, notEnabled("PUT")
+	}
+	if data == nil || reflect.ValueOf(data).IsNil() {
+		return -1, fmt.Errorf("PutFile was called with a nil valued io.Reader")
 	}
 
 	fqdn := d.fqdn(key)

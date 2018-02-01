@@ -40,7 +40,6 @@ deb: f3 test
 		--prefix /\
 		--description 'An FTP to AWS s3 bridge'\
 		--url "$(NAMESPACE)"\
-		--deb-systemd 'deb/lib/systemd/system/f3-server.service'\
 		--no-deb-systemd-restart-after-upgrade\
 		--chdir deb
 

@@ -9,9 +9,11 @@ install:
   - fpm --version
   - go get -u github.com/golang/dep/cmd/dep
 
+before_deploy:
+  - 'make deb'
+
 deploy:
   provider: releases
-  script: "make deb"
   api_key:
     secure: VFwX7jpFuf5UZFO55GCjfkCc0bQ4H0YL3iZWIh44hX0Enjx9E70xRfzFKHMlAbvK2sPTARroAlg51EwmIIdHBGZubEGUuOC2GbxmdS69qXUIBq2CD37seEq8Hpw5E2PouZlOmYiRJyRdt/c2MkNMsd5CFERUlccLm0PPORbXBWaD7J0z7PEIAXFdsdv4tfMeHoxjQZdcn/FUQctt5EG53m5HavU9uXhN9yZAz3cP9WifIVY9onEZmrypdUnJyRaMoom9Zf7ClsN1MXjJkf0Y09ZR+WPragglRqYjLnkNs9MKpdHB59Al+oZ6Ay3r398v5vEwgfNEl1xYmlKZSqaqMUd7DKKPlpLrkOFoQH2inP76VKEO/j7rZkelWrqnM78Zxeu67QOJ5JWqKHPslQRHIENRnb9Fz2zQcFBSxspeswl0TmYMvsIxUlZaArfpgIO8ytLTzf5UiazIaGsWko0zuHFhRIluywaeW0RMuDPBmpSXI12lLugo7xMZYKVdd7egTnHdh1QP2jliS4XPKjLbadWnqUk9XqALUjnrwnSXT6+tkIj+9inEM6lkVaGSTXKEyX518SWlTI7mW/SAxuXQJdj++7+mIATDXJsO2LrnFAp/Azhb++URSdjhYZ2rK1FTniytx9XzCmhgUJLL09+4gXjs1tVW6lvVdJy8tUPqAaQ=
   skip_cleanup: true

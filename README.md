@@ -1,5 +1,7 @@
 # f3
 
+[![Build Status](https://travis-ci.org/spreadshirt/f3.svg?branch=master)](https://travis-ci.org/spreadshirt/f3)
+
 f3 is a bridge that acts like an FTP server which accepts files but transfers them into an s3 bucket, instead of writing them to disk.
 
 ## Installation

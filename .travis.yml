@@ -2,8 +2,7 @@ dist: trusty
 
 language: go
 go:
-  - "1.9"
-  - "master"
+  - 1.9
 
 install:
   - gem install --no-ri --no-rdoc fpm

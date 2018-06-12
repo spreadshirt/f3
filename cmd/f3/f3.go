@@ -47,7 +47,7 @@ See https://github.com/spreadshirt/f3 for details.`,
 				return
 			}
 			if args[0] == "version" {
-				fmt.Printf("%s %s\n", AppName, meta.Version)
+				fmt.Printf("%s %s build on %s\n", AppName, meta.Version, meta.BuildTime)
 				return
 			}
 			err := run(args[0], flags)

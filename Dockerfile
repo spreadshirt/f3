@@ -1,5 +1,5 @@
-FROM debian:latest
-MAINTAINER Andreas Linz <anli@spreadshirt.net>
+FROM alpine:3.7
+LABEL maintainer="anli@spreadshirt.net"
 
 COPY f3 /usr/bin
 ENV  F3_COMMANDS="--s3-region=eu-central-1 --s3-credentials=ACCESSKEY:SECRETKEY --s3-bucket='https://my-bucket.s3.amazonaws.com'"

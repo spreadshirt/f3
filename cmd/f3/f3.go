@@ -83,17 +83,18 @@ func run(credentialsFilename string, flags cliFlags) error {
 		return errors.Wrapf(err, "Failed to read credentials file %q", credentialsFilename)
 	}
 
-	ftpHost, ftpPort, err := splitFtpAddr(flags.ftpAddr)
+	ftpAddr := getEnvOrDefault("FTP_ADDR", flags.ftpAddr)
+	ftpHost, ftpPort, err := splitFtpAddr(ftpAddr)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to split %q in host and port", flags.ftpAddr)
+		return errors.Wrapf(err, "Failed to split %q in host and port", ftpAddr)
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpFeatures:       flags.features,
+		FtpFeatures:       getEnvOrDefault("FTP_FEATURES", flags.features),
 		FtpNoOverwrite:    flags.noOverwrite,
-		S3Credentials:     flags.s3Credentials,
-		S3BucketURL:       flags.s3Bucket,
-		S3Region:          flags.s3Region,
+		S3Credentials:     getEnvOrDefault("S3_CREDENTIALS", flags.s3Credentials),
+		S3BucketURL:       getEnvOrDefault("BUCKET_URL", flags.s3Bucket),
+		S3Region:          getEnvOrDefault("S3_REGION", flags.s3Region),
 		DisableCloudWatch: flags.disableCloudwatch,
 	})
 	if err != nil {
@@ -131,4 +132,11 @@ func splitFtpAddr(addr string) (string, int, error) {
 	}
 
 	return host, int(port), nil
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultValue
 }

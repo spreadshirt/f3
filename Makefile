@@ -10,7 +10,7 @@ all: f3
 
 f3: $(GO_SOURCES)
 	@touch meta/meta.go
-	@vgo build ./cmd/f3
+	@vgo build $(GO_FLAGS) ./cmd/f3
 
 test: $(GO_SOURCES)
 	@vgo test ./...

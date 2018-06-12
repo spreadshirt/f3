@@ -8,7 +8,7 @@ GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/met
 
 all: f3
 
-f3: test $(GO_SOURCES)
+f3: $(GO_SOURCES)
 	@touch meta/meta.go
 	@vgo build ./cmd/f3
 

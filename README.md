@@ -25,7 +25,7 @@ Make sure that a go 1.7+ distribution is available on your system.
 ```sh
 $ git clone github.com/spreadshirt/f3.git
 $ cd f3
-$ s/make [test|clean]
+$ s/make [test|clean|docker]
 ```
 
 - `s/make lint` requires `golint` which can be installed by running: `go get -u github.com/golang/lint/golint`

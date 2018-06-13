@@ -1,4 +1,4 @@
-package main // import "github.com/spreadshirt/f3/cmd/f3"
+package main
 
 import (
 	"fmt"

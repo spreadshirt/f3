@@ -19,14 +19,15 @@ import (
 const AppName string = "f3"
 
 type cliFlags struct {
-	ftpAddr           string
-	features          string
-	noOverwrite       bool
-	s3Credentials     string
-	s3Bucket          string
-	s3Region          string
-	disableCloudwatch bool
-	verbose           bool
+	ftpAddr             string
+	ftpPassivePortRange string
+	features            string
+	noOverwrite         bool
+	s3Credentials       string
+	s3Bucket            string
+	s3Region            string
+	disableCloudwatch   bool
+	verbose             bool
 }
 
 func main() {
@@ -58,6 +59,7 @@ See https://github.com/spreadshirt/f3 for details.`,
 	}
 
 	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21, overrides $FTP_ADDR")
+	cmd.PersistentFlags().StringVar(&flags.ftpPassivePortRange, "ftp-passive-port-range", "", "Port range to use in FTP passive mode, e.g. 1000-1002 for ports [1000, 1001, 1002], default uses a random port, overrides $FTP_PASSIVE_PORT_RANGE")
 	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q, overrides $FTP_FEATURES", server.DefaultFeatureSet))
 	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
 	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey, overrides $S3_CREDENTIALS")
@@ -107,6 +109,7 @@ func run(credentialsFilename string, flags cliFlags) error {
 		Name:           AppName,
 		Hostname:       ftpHost,
 		Port:           ftpPort,
+		PassivePorts:   getEnvOrDefault("FTP_PASSIVE_PORT_RANGE", flags.ftpPassivePortRange),
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
 		Logger:         &server.FTPLogger{},
 	})

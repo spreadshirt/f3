@@ -1,10 +1,9 @@
 .PHONY: clean test clean-all
 
-SHELL		:=bash
-NAMESPACE	:=github.com/spreadshirt/f3
-GO_SOURCES	:=$(wildcard cmd/f3/*.go server/*.go)
+META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
+GO_SOURCES	:=$(shell go list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
 VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
-GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
+GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH)/meta.Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
 
 all: f3
 

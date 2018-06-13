@@ -3,7 +3,6 @@ LABEL maintainer="anli@spreadshirt.net"
 
 RUN apk update && apk add --no-cache ca-certificates
 
-COPY f3 /usr/bin
 ENV  F3_COMMANDS="--disable-cloudwatch"
 ENV  S3_REGION="eu-central-1"
 ENV  S3_CREDENTIAL="ACCESSKEY:SECRETKEY"
@@ -13,5 +12,7 @@ ENV  FTP_FEATURES="ls"
 
 VOLUME ["/etc/f3"]
 EXPOSE 21
+
+COPY f3 /usr/bin
 
 CMD f3 $F3_COMMANDS /etc/f3/credentials.txt

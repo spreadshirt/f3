@@ -1,25 +1,18 @@
-.PHONY: clean test fmt vet lint setup check-dep check-lint deb
+.PHONY: clean test clean-all
 
-SHELL		:=bash
-GOPATH		:=$(PWD)/.go
-NAMESPACE	:=github.com/spreadshirt/f3
-WORKSPACE	:=$(GOPATH)/src/$(NAMESPACE)
-GO_SOURCES	:=$(wildcard cmd/f3/*.go server/*.go)
-GO_PACKAGES	:=$(dir $(GO_SOURCES))
+META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
+GO_SOURCES	:=$(shell go list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
 VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
-GO_FLAGS	:=-ldflags="-X $(NAMESPACE)/meta.Version=$(VERSION) -X $(NAMESPACE)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
+GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH).Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH).BuildTime=$(shell date --iso-8601=seconds --utc)"
 
-all: setup f3
+all: f3
 
-f3: test $(GO_SOURCES)
+f3: $(GO_SOURCES)
 	@touch meta/meta.go
-	@cd $(WORKSPACE)\
-		&& go install $(GO_FLAGS) $(NAMESPACE)/cmd/f3
-	@cp $(GOPATH)/bin/$@ $(PWD)
+	@vgo build $(GO_FLAGS) ./cmd/f3
 
-test: setup
-	@cd $(WORKSPACE)\
-		&& go test $(addprefix $(NAMESPACE)/,$(GO_PACKAGES))
+test: $(GO_SOURCES)
+	@vgo test ./...
 
 install: f3
 ifeq ($$EUID, 0)
@@ -43,42 +36,8 @@ deb: f3 test
 		--no-deb-systemd-restart-after-upgrade\
 		--chdir deb
 
-fmt: $(GO_SOURCES)
-	gofmt -w $<
-	goimports -w $<
-
-check: vet lint
-
-vet: $(GO_SOURCES)
-	go vet $(addprefix $(NAMESPACE)/,$(GO_PACKAGES))
-
-lint: check-lint $(GO_SOURCES)
-	golint $(addprefix $(NAMESPACE)/,$(GO_PACKAGES))
-
-dep: $(WORKSPACE)
-	@cd $(WORKSPACE) && dep $(ARGS)
-
-setup: check-dep $(WORKSPACE)
-	@cd $(WORKSPACE) && dep ensure
-
-$(GOPATH):
-	@mkdir -p $@
-
-$(WORKSPACE): $(GOPATH)
-	@mkdir -p $$(dirname $@)
-	@ln -s $(PWD) $@
-
-check-dep:
-	@hash dep 2>/dev/null\
-		|| (echo -e "dep is missing:\ngo get -u github.com/golang/dep/cmd/dep"; false)
-
-check-lint:
-	@hash golint 2>/dev/null\
-		|| (echo -e "golint is missing:\ngo get -u github.com/golang/lint/golint"; false)
-
 clean:
 	rm -f f3
 
 clean-all: clean
 	rm -f f3-server_*.deb
-	rm -rf .go vendor

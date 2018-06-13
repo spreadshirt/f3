@@ -10,7 +10,7 @@ import (
 func TestGetEnvOrDefault(t *testing.T) {
 	tCases := []struct {
 		name,
-		key,
+		envKey,
 		envValue,
 		defaultValue,
 		expected string
@@ -40,10 +40,10 @@ func TestGetEnvOrDefault(t *testing.T) {
 
 	for _, tCase := range tCases {
 		t.Run(tCase.name, func(t *testing.T) {
-			if tCase.key != "" {
-				os.Setenv(tCase.key, tCase.expected)
+			if tCase.envKey != "" {
+				os.Setenv(tCase.envKey, tCase.expected)
 			}
-			actual := getEnvOrDefault(tCase.key, tCase.defaultValue)
+			actual := getEnvOrDefault(tCase.envKey, tCase.defaultValue)
 			if actual != tCase.expected {
 				t.Fatalf("Expected %q but was %q", tCase.expected, actual)
 			}

@@ -7,7 +7,7 @@ go:
 install:
   - gem install --no-ri --no-rdoc fpm
   - fpm --version
-  - go get -u github.com/golang/dep/cmd/dep
+  - go get golang.org/x/vgo
 
 before_deploy:
   - 'make deb'

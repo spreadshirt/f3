@@ -47,7 +47,7 @@ See https://github.com/spreadshirt/f3 for details.`,
 				return
 			}
 			if args[0] == "version" {
-				fmt.Printf("%s %s\n", AppName, meta.Version)
+				fmt.Printf("%s %s built on %s\n", AppName, meta.Version, meta.BuildTime)
 				return
 			}
 			err := run(args[0], flags)
@@ -57,12 +57,12 @@ See https://github.com/spreadshirt/f3 for details.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21")
-	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q", server.DefaultFeatureSet))
+	cmd.PersistentFlags().StringVar(&flags.ftpAddr, "ftp-addr", "127.0.0.1:21", "Address of the FTP server interface, default: 127.0.0.1:21, overrides $FTP_ADDR")
+	cmd.PersistentFlags().StringVar(&flags.features, "features", server.DefaultFeatureSet, fmt.Sprintf("Feature set, default is empty. Default: --features=%q, overrides $FTP_FEATURES", server.DefaultFeatureSet))
 	cmd.PersistentFlags().BoolVar(&flags.noOverwrite, "no-overwrite", false, "Prevent files from being overwritten")
-	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey")
-	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com")
-	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, "Region where the s3 bucket is located in")
+	cmd.PersistentFlags().StringVar(&flags.s3Credentials, "s3-credentials", "", "AccessKey:SecretKey, overrides $S3_CREDENTIALS")
+	cmd.PersistentFlags().StringVar(&flags.s3Bucket, "s3-bucket", "", "URL of the s3 bucket, e.g. https://some-bucket.s3.amazonaws.com, overrides $S3_BUCKET")
+	cmd.PersistentFlags().StringVar(&flags.s3Region, "s3-region", server.DefaultRegion, "Region where the s3 bucket is located in, overrides $S3_REGION")
 	cmd.PersistentFlags().BoolVar(&flags.disableCloudwatch, "disable-cloudwatch", false, "Disable CloudWatch metrics")
 	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "Print what is being done")
 
@@ -83,17 +83,18 @@ func run(credentialsFilename string, flags cliFlags) error {
 		return errors.Wrapf(err, "Failed to read credentials file %q", credentialsFilename)
 	}
 
-	ftpHost, ftpPort, err := splitFtpAddr(flags.ftpAddr)
+	ftpAddr := getEnvOrDefault("FTP_ADDR", flags.ftpAddr)
+	ftpHost, ftpPort, err := splitFtpAddr(ftpAddr)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to split %q in host and port", flags.ftpAddr)
+		return errors.Wrapf(err, "Failed to split %q in host and port", ftpAddr)
 	}
 
 	factory, err := server.NewDriverFactory(&server.FactoryConfig{
-		FtpFeatures:       flags.features,
+		FtpFeatures:       getEnvOrDefault("FTP_FEATURES", flags.features),
 		FtpNoOverwrite:    flags.noOverwrite,
-		S3Credentials:     flags.s3Credentials,
-		S3BucketURL:       flags.s3Bucket,
-		S3Region:          flags.s3Region,
+		S3Credentials:     getEnvOrDefault("S3_CREDENTIALS", flags.s3Credentials),
+		S3BucketURL:       getEnvOrDefault("S3_BUCKET", flags.s3Bucket),
+		S3Region:          getEnvOrDefault("S3_REGION", flags.s3Region),
 		DisableCloudWatch: flags.disableCloudwatch,
 	})
 	if err != nil {
@@ -131,4 +132,11 @@ func splitFtpAddr(addr string) (string, int, error) {
 	}
 
 	return host, int(port), nil
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultValue
 }

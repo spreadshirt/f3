@@ -3,7 +3,7 @@
 META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
 GO_SOURCES	:=$(shell go list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
 VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
-GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH)/meta.Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH)/meta.BuildTime=$(shell date --iso-8601=seconds --utc)"
+GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH).Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH).BuildTime=$(shell date --iso-8601=seconds --utc)"
 
 all: f3
 

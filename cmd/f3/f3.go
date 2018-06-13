@@ -93,7 +93,7 @@ func run(credentialsFilename string, flags cliFlags) error {
 		FtpFeatures:       getEnvOrDefault("FTP_FEATURES", flags.features),
 		FtpNoOverwrite:    flags.noOverwrite,
 		S3Credentials:     getEnvOrDefault("S3_CREDENTIALS", flags.s3Credentials),
-		S3BucketURL:       getEnvOrDefault("BUCKET_URL", flags.s3Bucket),
+		S3BucketURL:       getEnvOrDefault("S3_BUCKET", flags.s3Bucket),
 		S3Region:          getEnvOrDefault("S3_REGION", flags.s3Region),
 		DisableCloudWatch: flags.disableCloudwatch,
 	})

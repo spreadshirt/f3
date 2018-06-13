@@ -1,4 +1,4 @@
-.PHONY: clean test clean-all
+.PHONY: clean test clean-all docker
 
 META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
 GO_SOURCES	:=$(shell vgo list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
@@ -35,6 +35,13 @@ deb: f3 test
 		--url "$(NAMESPACE)"\
 		--no-deb-systemd-restart-after-upgrade\
 		--chdir deb
+
+docker: Dockerfile f3
+	docker build -t spreadshirt/f3:$(VERSION) .
+
+docker-push: docker
+	docker login docker.io
+	docker push spreadshirt/f3:$(VERSION)
 
 clean:
 	rm -f f3

@@ -17,14 +17,14 @@ func TestGetEnvOrDefault(t *testing.T) {
 	}{
 		{
 			"env-set",
-			strconv.FormatInt(time.Now().UnixNano(), 16),
+			pseudoRandomString(),
 			"some-env-value",
 			"some-default",
 			"some-env-value",
 		},
 		{
 			"env-set-but-no-default",
-			strconv.FormatInt(time.Now().UnixNano(), 16),
+			pseudoRandomString(),
 			"some-env-value",
 			"",
 			"some-env-value",
@@ -49,4 +49,8 @@ func TestGetEnvOrDefault(t *testing.T) {
 			}
 		})
 	}
+}
+
+func pseudoRandomString() string {
+	return strconv.FormatInt(time.Now().UnixNano(), 16)
 }

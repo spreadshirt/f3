@@ -11,14 +11,7 @@ Group=www-data
 EnvironmentFile=/etc/default/f3
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-ExecStart=/usr/sbin/f3\
-    --ftp-addr="${FTP_ADDR}"\
-    --features='put'\
-    --no-overwrite\
-    --s3-credentials="${S3_KEY}:${S3_SECRET}"\
-    --s3-bucket="${S3_BUCKET}"\
-    --s3-region="${S3_REGION}"\
-    /etc/f3/ftp-credentials.txt
+ExecStart=/usr/sbin/f3 $F3_EXTRA_OPTS /etc/f3/ftp-credentials.txt
 Restart=on-abnormal
 ; restrictions
 PrivateDevices=true

@@ -103,7 +103,7 @@ func run(credentialsFilename string, flags cliFlags) error {
 		return errors.Wrapf(err, "Failed to instantiate new driver factory")
 	}
 
-	ftpServer := ftp.NewServer(&ftp.ServerOpts{
+	serverOpts := ftp.ServerOpts{
 		Factory:        factory,
 		Auth:           creds,
 		Name:           AppName,
@@ -112,7 +112,10 @@ func run(credentialsFilename string, flags cliFlags) error {
 		PassivePorts:   getEnvOrDefault("FTP_PASSIVE_PORT_RANGE", flags.ftpPassivePortRange),
 		WelcomeMessage: fmt.Sprintf("%s says hello!", AppName),
 		Logger:         &server.FTPLogger{},
-	})
+	}
+	logrus.Debugf("Server options: %#v\n", serverOpts)
+
+	ftpServer := ftp.NewServer(&serverOpts)
 	logrus.Infof("FTP server starts listening on \"%s:%d\"", ftpHost, ftpPort)
 	return ftpServer.ListenAndServe()
 }

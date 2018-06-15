@@ -268,7 +268,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 		Body:   data,
 	})
 	if err != nil {
-		err := fmt.Errorf("Failed to put object %q because reading from source failed.", fqdn)
+		err := fmt.Errorf("Failed to put object %q because reading from source failed", fqdn)
 		logrus.WithFields(logrus.Fields{"time": timestamp, "object": fqdn, "action": "PUT", "error": err}).Error(err)
 		return -1, err
 	}

@@ -234,6 +234,14 @@ func TestIfPutFileChecksForNilReader(t *testing.T) {
 	}
 }
 
+func TestChangeDirectory(t *testing.T) {
+	// I can't test the value of the drivers 'cwd'
+	// because its methods need to be defined on a value receiver,
+	// i.e. that sideffect changes, like setting the cwd on a change-dir call,
+	// are not reflected in the test struct.
+	t.Log("ToDo")
+}
+
 func TestS3Driver(t *testing.T) {
 	logrus.SetLevel(logrus.PanicLevel)
 	bucketName := "test-bucket"

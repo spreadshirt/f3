@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path/filepath"
 	"reflect"
 	"time"
 
@@ -33,6 +34,7 @@ type S3Driver struct {
 	hostname     string
 	bucketName   string
 	bucketURL    *url.URL
+	cwd          string
 }
 
 func intoAwsError(err error) awserr.Error {
@@ -109,10 +111,14 @@ func (d S3Driver) Stat(key string) (ftp.FileInfo, error) {
 }
 
 // ChangeDir will always return an error because there is no such operation for a cloud object storage.
-func (d S3Driver) ChangeDir(key string) error {
-	// There is no s3 equivalent
-	logrus.Warn("ChangeDir (CD) is not supported.")
-	return notEnabled("CD")
+//
+// To allow uploading into "subdirectories" of a bucket a path change is simulated by keeping track of `CD` calls.
+// In FTP only a single directory level will be changed at a time, i.e. `CD /foo/bar` will result in two calls, `CD /foo` and `CD /foo/bar`.
+// There is no server side logic to be implement because relative paths are handled by the client, at least is how lftp and Filezilla operated.
+func (d S3Driver) ChangeDir(path string) error {
+	d.cwd = path
+	logrus.Debugf("Changed into path: %q", d.cwd)
+	return nil
 }
 
 // ListDir call the callback function with object metadata for each object located under prefix `key`.
@@ -284,7 +290,7 @@ func (d S3Driver) PutFile(key string, data io.Reader, appendMode bool) (int64, e
 // fqdn returns the fully qualified name for a object with key `key`.
 func (d S3Driver) fqdn(key string) string {
 	u := d.bucketURL
-	u.Path = key
+	u.Path = filepath.Join(d.cwd, key)
 	return u.String()
 }
 

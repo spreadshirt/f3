@@ -24,7 +24,7 @@ install: f3
 ifeq ($$EUID, 0)
 	@install -m 0755 -v f3 /usr/local/bin
 else
-	@install -m 0755 -v f3 $$HOME/.local/bin
+	@vgo install ./cmd/f3
 endif
 
 deb: f3 test

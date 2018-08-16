@@ -1,9 +1,15 @@
 .PHONY: clean test clean-all docker
 
+SYSTEM:=$(shell uname)
 META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
 GO_SOURCES	:=$(shell vgo list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
 VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
-GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH).Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH).BuildTime=$(shell date --iso-8601=seconds --utc)"
+ifeq ($(SYSTEM), Darwin)
+BUILD_DATE	:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+else
+BUILD_DATE	:=$(shell date --iso-8601=seconds --utc)
+endif
+GO_FLAGS	:=-ldflags="-X $(META_PACKAGE_IMPORT_PATH).Version=$(VERSION) -X $(META_PACKAGE_IMPORT_PATH).BuildTime=$(BUILD_DATE)"
 
 all: f3
 

@@ -16,9 +16,9 @@ test: $(GO_SOURCES)
 
 install: f3
 ifeq ($$EUID, 0)
-	@install --mode=0755 --verbose f3 /usr/local/bin
+	@install -m 0755 -v f3 /usr/local/bin
 else
-	@install --mode=0755 --verbose f3 $$HOME/.local/bin
+	@install -m 0755 -v f3 $$HOME/.local/bin
 endif
 
 deb: f3 test

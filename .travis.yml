@@ -8,6 +8,9 @@ install:
   - gem install --no-ri --no-rdoc fpm
   - fpm --version
 
+env:
+  - GO111MODULE=on
+
 before_deploy:
   - 'make deb'
 

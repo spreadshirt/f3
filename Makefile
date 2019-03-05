@@ -1,8 +1,8 @@
 .PHONY: clean test clean-all docker
 
 SYSTEM:=$(shell uname)
-META_PACKAGE_IMPORT_PATH := $(shell vgo list -f '{{ .ImportPath }}' ./meta)
-GO_SOURCES	:=$(shell vgo list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
+META_PACKAGE_IMPORT_PATH := $(shell go list -f '{{ .ImportPath }}' ./meta)
+GO_SOURCES	:=$(shell go list -f '{{ range $$element := .GoFiles }}{{ $$.Dir }}/{{ $$element }}{{ "\n" }}{{ end }}' ./...)
 VERSION		:=$(shell git describe --tags --always | sed 's/^v//')
 ifeq ($(SYSTEM), Darwin)
 BUILD_DATE	:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -15,16 +15,16 @@ all: f3
 
 f3: $(GO_SOURCES)
 	@touch meta/meta.go
-	@CGO_ENABLED=0 vgo build $(GO_FLAGS) ./cmd/f3
+	@CGO_ENABLED=0 go build $(GO_FLAGS) ./cmd/f3
 
 test: $(GO_SOURCES)
-	@vgo test ./...
+	@go test ./...
 
 install: f3
 ifeq ($$EUID, 0)
 	@install -m 0755 -v f3 /usr/local/bin
 else
-	@vgo install ./cmd/f3
+	@go install ./cmd/f3
 endif
 
 deb: f3 test

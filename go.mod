@@ -1,5 +1,7 @@
 module github.com/spreadshirt/f3
 
+go 1.17
+
 require (
 	github.com/aws/aws-sdk-go v1.17.10
 	github.com/goftp/file-driver v0.0.0-20180502053751-5d604a0fc0c9 // indirect
@@ -17,3 +19,5 @@ require (
 	golang.org/x/sys v0.0.0-20190305064518-30e92a19ae4a // indirect
 	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 // indirect
 )
+
+require github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
